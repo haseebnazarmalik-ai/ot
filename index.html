@@ -4,56 +4,74 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>OT Tracker Pro</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1976d2">
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js');
+      }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --primary: #1e3a8a; --gradient: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); --bg: #f8fafc; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #334155; -webkit-tap-highlight-color: transparent; }
 
-        /* Loading Overlay */
-        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; align-items: center; justify-content: center; z-index: 20000; font-weight: 800; color: var(--primary); }
-
-        /* Header & Tabs */
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: var(--gradient); color: white; position: sticky; top: 0; z-index: 1000; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
-        .profile-dp { width: 42px; height: 42px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.8); cursor: pointer; object-fit: cover; }
-        
-        .tabs-container { display: flex; background: #fff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 82px; z-index: 999; }
-        .tab { flex: 1; padding: 15px; text-align: center; font-weight: 800; font-size: 14px; color: #64748b; cursor: pointer; border-bottom: 3px solid transparent; }
+        /* Tabs System */
+        .tabs-container { display: flex; background: #fff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 75px; z-index: 99; }
+        .tab { flex: 1; padding: 15px; text-align: center; font-weight: 800; font-size: 14px; color: #64748b; cursor: pointer; transition: 0.3s; border-bottom: 3px solid transparent; }
         .tab.active { color: var(--primary); border-bottom-color: var(--primary); background: #f0f7ff; }
 
-        /* Screens */
-        #loginScreen, #mainApp { display: none; }
-        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--gradient); flex-direction: column; align-items: center; justify-content: center; z-index: 10000; color: white; }
+        /* Login Screen */
+        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--gradient); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; color: white; }
         .login-box { background: rgba(255,255,255,0.15); padding: 40px 25px; border-radius: 28px; backdrop-filter: blur(15px); text-align: center; width: 85%; max-width: 350px; border: 1px solid rgba(255,255,255,0.2); }
         .google-btn { width: 100%; padding: 15px; margin-top: 25px; border-radius: 14px; border: none; background: #fff; color: #444; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 16px; }
 
-        /* Tables & UI */
-        .view-content { display: none; padding: 15px; max-width: 600px; margin: auto; }
+        /* Header */
+        #mainApp { display: none; padding-bottom: 120px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; background: var(--gradient); color: white; position: sticky; top: 0; z-index: 100; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .profile-dp { width: 42px; height: 42px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.8); cursor: pointer; object-fit: cover; }
+
+        /* Dashboard & Analytics Views */
+        .view-content { display: none; padding: 10px 15px; max-width: 600px; margin: auto; }
         .view-content.active { display: block; }
-        .row { display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 2fr; padding: 14px 5px; border-bottom: 1px solid #f1f5f9; align-items: center; text-align: center; font-size: 13px; background: white; }
+
+        /* Selectors */
+        .selector-container { display: flex; gap: 10px; margin: 15px 0; }
+        select { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; font-weight: 600; background: #fff; outline: none; }
+
+        /* Calendar Row Styling */
+        .row { display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 2fr; padding: 14px 5px; border-bottom: 1px solid #f8fafc; align-items: center; text-align: center; font-size: 13px; }
         .row input { width: 45px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 10px; text-align: center; font-weight: 700; }
         .current-day-highlight { background-color: #dcfce7 !important; border-left: 5px solid #22c55e; }
-        .mini-card { background: #fff; padding: 15px; border-radius: 18px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); flex: 1; }
-        .final-summary { margin-top: 20px; background: #eff6ff; border-radius: 24px; padding: 25px; text-align: center; border: 1px solid #dbeafe; }
-        .save-all-btn { position: fixed; bottom: 30px; right: 20px; padding: 18px 30px; background: #16a34a; color: white; border: none; border-radius: 50px; font-weight: 800; z-index: 2000; box-shadow: 0 10px 25px rgba(22,163,74,0.4); }
 
-        /* Modal */
-        .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); }
-        .modal-content { background: white; margin: 15% auto; padding: 30px 25px; border-radius: 32px; width: 85%; max-width: 350px; }
-        
-        #toast { visibility: hidden; min-width: 200px; background-color: #333; color: #fff; text-align: center; border-radius: 50px; padding: 12px 24px; position: fixed; z-index: 4000; bottom: 100px; left: 50%; transform: translateX(-50%); }
+        /* Summary Cards */
+        .top-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .mini-card { background: #fff; padding: 15px; border-radius: 18px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .final-summary { margin-top: 20px; background: #eff6ff; border-radius: 24px; padding: 25px; text-align: center; border: 1px solid #dbeafe; }
+        .actual-salary-row { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #bfdbfe; color: #1e3a8a; font-weight: 900; font-size: 18px; }
+
+        /* Save Button */
+        .save-all-btn { position: fixed; bottom: 30px; right: 20px; padding: 18px 30px; background: #16a34a; color: white; border: none; border-radius: 50px; font-weight: 800; z-index: 999; box-shadow: 0 10px 25px rgba(22,163,74,0.4); cursor: pointer; }
+
+        /* Modal Styles */
+        .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); }
+        .modal-content { background: white; margin: 12% auto; padding: 30px 25px; border-radius: 32px; width: 85%; max-width: 350px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
+        .setting-field { margin-bottom: 15px; }
+        .setting-field input { width: 100%; padding: 14px; border-radius: 14px; border: 1px solid #e2e8f0; font-weight: 700; box-sizing: border-box; }
+
+        #toast { visibility: hidden; min-width: 200px; background-color: #333; color: #fff; text-align: center; border-radius: 50px; padding: 12px 24px; position: fixed; z-index: 2000; bottom: 100px; left: 50%; transform: translateX(-50%); font-weight: 600; }
         #toast.show { visibility: visible; animation: fadeinout 2.5s; }
-        @keyframes fadeinout { 0%, 100% { opacity: 0; } 20%, 80% { opacity: 1; } }
+        @keyframes fadeinout { 0%, 100% { opacity: 0; bottom: 80px; } 20%, 80% { opacity: 1; bottom: 100px; } }
     </style>
 </head>
 <body>
 
-<div id="loader">Checking Session...</div>
-<div id="toast">Saved ✅</div>
+<div id="toast">File Saved ✅</div>
 
 <div id="loginScreen">
     <div class="login-box">
-        <h1>OT Tracker Pro</h1>
-        <button class="google-btn" id="googleLoginBtn">
+        <h1 style="margin:0; font-size:26px;">OT Tracker Pro</h1>
+        <button class="google-btn" onclick="window.googleLogin()">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20"> Sign in with Google
         </button>
     </div>
@@ -74,46 +92,57 @@
     </div>
 
     <div id="dashboardView" class="view-content active">
-        <div style="display:flex; gap:10px; margin-bottom:15px;">
-            <select id="monthSelect" onchange="window.loadUserData()" style="flex:1; padding:12px; border-radius:12px; border:1px solid #ddd;"></select>
-            <select id="yearSelect" onchange="window.loadUserData()" style="flex:1; padding:12px; border-radius:12px; border:1px solid #ddd;"></select>
+        <div class="selector-container">
+            <select id="monthSelect" onchange="window.loadUserData()"></select>
+            <select id="yearSelect" onchange="window.loadUserData()"></select>
         </div>
-        <div style="display:flex; gap:10px; margin-bottom:15px;">
-            <div class="mini-card"><div>Total Hrs</div><span id="totalHrs">0</span></div>
+        <div class="top-summary">
+            <div class="mini-card"><div>Total Hours</div><span id="totalHrs">0</span></div>
             <div class="mini-card"><div>OT SAR</div><span id="totalOT">0.00</span></div>
         </div>
-        <div id="calendarRows"></div>
+        <div style="background: #fff; border-radius: 22px; overflow: hidden; box-shadow: 0 4px 25px rgba(0,0,0,0.05);" id="calendarRows"></div>
+        
         <div class="final-summary">
-            <div id="grandSAR" style="font-size:20px; font-weight:800;">0.00 SAR</div>
-            <div id="grandPKR" style="font-size:30px; font-weight:900; color:#2563eb;">PKR 0.00</div>
-            <div id="displayActual" style="margin-top:10px; font-weight:800; color:#1e3a8a;">ACTUAL: 0.00</div>
+            <div style="font-weight: 800; color: #1e40af; font-size: 11px;">MONTHLY GRAND TOTAL</div>
+            <div style="font-size: 22px; font-weight: 800;" id="grandSAR">0.00 SAR</div>
+            <div style="font-size: 34px; font-weight: 900; color: #2563eb;"><small style="font-size:16px;">PKR</small> <span id="grandPKR">0.00</span></div>
+            <div class="actual-salary-row">ACTUAL SALARY: <span id="displayActual">0.00</span></div>
         </div>
-        <button class="save-all-btn" onclick="window.saveUserData()">☁️ SYNC CLOUD</button>
+        <button class="save-all-btn" onclick="window.saveUserData()">☁️ SYNC TO CLOUD</button>
     </div>
 
     <div id="analyticsView" class="view-content">
-        <select id="yearSelectAnalytics" onchange="updateCharts()" style="width:100%; padding:12px; margin-bottom:15px; border-radius:12px;"></select>
-        <canvas id="otBarChart"></canvas>
-        <canvas id="incomePieChart" style="margin-top:20px;"></canvas>
+        <div class="selector-container">
+            <select id="yearSelectAnalytics" onchange="updateCharts()"></select>
+        </div>
+        <div style="background:#fff; border-radius:24px; padding:20px; margin-bottom:20px;">
+            <h4 style="margin:0 0 15px 0; color:var(--primary);">Month-wise OT Trend</h4>
+            <canvas id="otBarChart"></canvas>
+        </div>
+        <div style="background:#fff; border-radius:24px; padding:20px;">
+            <h4 style="margin:0 0 15px 0; color:var(--primary);">Annual Income Breakdown (%)</h4>
+            <canvas id="incomePieChart"></canvas>
+        </div>
     </div>
 </div>
 
 <div id="settingsModal" class="modal">
     <div class="modal-content">
-        <h3 style="text-align:center;">Settings</h3>
-        <input type="number" id="baseSalary" placeholder="Basic Salary" oninput="calculateAll(); autoLocalSave();" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;">
-        <input type="number" id="otRate" placeholder="OT Rate" step="0.01" oninput="calculateAll(); autoLocalSave();" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;">
-        <input type="number" id="pkrRate" placeholder="PKR Rate" step="0.1" oninput="calculateAll(); autoLocalSave();" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;">
-        <input type="number" id="actualSalaryInput" placeholder="Actual Salary" oninput="calculateAll(); autoLocalSave();" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;">
-        <button onclick="toggleModal()" style="width:100%; padding:15px; background:var(--gradient); color:white; border:none; border-radius:12px; font-weight:800;">DONE</button>
-        <button onclick="window.logout()" style="width:100%; margin-top:15px; background:none; border:none; color:red; font-weight:700;">Logout</button>
+        <h3 style="margin-top:0; color:var(--primary); text-align:center;">Settings</h3>
+        <div class="setting-field"><label>Monthly Basic Salary</label><input type="number" id="baseSalary" oninput="calculateAll(); autoLocalSave();"></div>
+        <div class="setting-field"><label>OT Rate (1 Hr)</label><input type="number" id="otRate" step="0.01" oninput="calculateAll(); autoLocalSave();"></div>
+        <div class="setting-field"><label>PKR Rate</label><input type="number" id="pkrRate" step="0.1" oninput="calculateAll(); autoLocalSave();"></div>
+        <div class="setting-field"><label>Actual Salary (Fixed)</label><input type="number" id="actualSalaryInput" oninput="calculateAll(); autoLocalSave();"></div>
+        
+        <button class="done-btn" onclick="toggleModal()" style="width:100%; padding:16px; background:var(--gradient); color:white; border:none; border-radius:16px; font-weight:800; cursor:pointer;">DONE</button>
+        <button onclick="window.logout()" style="width:100%; margin-top:15px; background:none; border:none; color:#ef4444; font-weight:700; cursor:pointer;">Logout</button>
     </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
   import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
-  import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithRedirect, getRedirectResult, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+  import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAywmVNaLkyudJelZ-Gdx6gL1hydzxe2cg",
@@ -127,26 +156,13 @@
   const db = getDatabase(app);
   const auth = getAuth(app);
 
-  // Set Persistence to keep user logged in
-  setPersistence(auth, browserLocalPersistence);
-
-  // Handle Redirect Result
-  getRedirectResult(auth).then((result) => {
-      if (result?.user) { console.log("User logged in"); }
-      document.getElementById('loader').style.display = 'none';
-  }).catch((e) => { 
-      console.error(e); 
-      document.getElementById('loader').style.display = 'none';
-  });
-
-  // Auth Observer
   onAuthStateChanged(auth, (user) => {
-      document.getElementById('loader').style.display = 'none';
       if (user) {
+          localStorage.setItem('ot_user_login', user.displayName || user.email);
+          if(user.photoURL) document.getElementById('userDP').src = user.photoURL;
           document.getElementById('loginScreen').style.display = 'none';
           document.getElementById('mainApp').style.display = 'block';
-          document.getElementById('userName').innerText = user.displayName;
-          if(user.photoURL) document.getElementById('userDP').src = user.photoURL;
+          document.getElementById('userName').innerText = user.displayName || user.email;
           window.loadUserData();
       } else {
           document.getElementById('loginScreen').style.display = 'flex';
@@ -154,144 +170,185 @@
       }
   });
 
-  document.getElementById('googleLoginBtn').onclick = () => {
-      const provider = new GoogleAuthProvider();
-      signInWithRedirect(auth, provider);
-  };
-
   window.saveUserData = async () => {
       const user = auth.currentUser; if (!user) return;
       const year = document.getElementById('yearSelect').value;
       const month = document.getElementById('monthSelect').value;
       const overtime = {};
-      document.querySelectorAll('.ot-input').forEach(i => { if(i.value) overtime[i.dataset.id] = i.value; });
+      document.querySelectorAll('.ot-input').forEach(input => { if(input.value) overtime[input.dataset.id] = input.value; });
       const data = { 
           settings: { 
               baseSalary: document.getElementById('baseSalary').value, 
               otRate: document.getElementById('otRate').value, 
               pkrRate: document.getElementById('pkrRate').value,
               actualSalary: document.getElementById('actualSalaryInput').value
-          }, overtime 
+          }, 
+          overtime 
       };
       await set(ref(db, `users/${user.uid}/${year}/${month}`), data);
-      showToast("Cloud Synced ✅");
+      showToast("File Saved ✅");
   };
 
   window.loadUserData = () => {
       const user = auth.currentUser;
-      const y = document.getElementById('yearSelect').value;
-      const m = document.getElementById('monthSelect').value;
+      const year = document.getElementById('yearSelect').value;
+      const month = document.getElementById('monthSelect').value;
       window.initCalendar();
-      const local = localStorage.getItem(`ot_data_${y}_${m}`);
-      if(local) applyData(JSON.parse(local));
+      const localData = localStorage.getItem(`ot_data_${year}_${month}`);
+      if(localData) applyData(JSON.parse(localData));
       if (user) {
-          onValue(ref(db, `users/${user.uid}/${y}/${m}`), (s) => {
-              if(s.val()) { applyData(s.val()); localStorage.setItem(`ot_data_${y}_${m}`, JSON.stringify(s.val())); }
+          onValue(ref(db, `users/${user.uid}/${year}/${month}`), (snapshot) => {
+              const val = snapshot.val();
+              if (val) { applyData(val); localStorage.setItem(`ot_data_${year}_${month}`, JSON.stringify(val)); }
           }, { onlyOnce: true });
       }
   };
 
+  window.googleLogin = () => signInWithPopup(auth, new GoogleAuthProvider());
   window.logout = () => { localStorage.clear(); signOut(auth).then(() => location.reload()); };
 </script>
 
 <script>
-    let bar, pie;
-    function switchTab(n, el) {
+    let barChart, pieChart;
+
+    function switchTab(tabName, el) {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
         el.classList.add('active');
-        document.getElementById(n + 'View').classList.add('active');
-        if(n === 'analytics') updateCharts();
+        document.getElementById(tabName + 'View').classList.add('active');
+        if(tabName === 'analytics') updateCharts();
     }
 
-    window.initCalendar = () => {
-        const m = parseInt(document.getElementById('monthSelect').value);
-        const y = parseInt(document.getElementById('yearSelect').value);
-        const days = new Date(y, m, 0).getDate();
+    window.initCalendar = function() {
+        const month = parseInt(document.getElementById('monthSelect').value);
+        const year = parseInt(document.getElementById('yearSelect').value);
+        const days = new Date(year, month, 0).getDate();
         const today = new Date();
+        const currentDay = today.getDate();
+        const currentMonth = today.getMonth() + 1;
+        const currentYear = today.getFullYear();
+
         let html = '<div class="row" style="background:#f1f5f9; font-weight:800; font-size:10px;"><div>DATE</div><div>DAY</div><div>HRS</div><div>SAR</div></div>';
         for (let d = 1; d <= days; d++) {
-            const date = new Date(y, m - 1, d);
-            const day = date.toLocaleDateString('en-US', { weekday: 'short' });
-            const isToday = (d === today.getDate() && m === (today.getMonth()+1) && y === today.getFullYear()) ? 'current-day-highlight' : '';
-            const color = (day === 'Fri') ? '#ef4444' : '#64748b';
+            const dateObj = new Date(year, month - 1, d);
+            const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+            
+            // Highlight Current Day
+            const isToday = (d === currentDay && month === currentMonth && year === currentYear) ? 'current-day-highlight' : '';
+            
+            // Friday Red
+            const dayColor = (dayName === 'Fri') ? '#ef4444' : '#64748b';
+
             html += `<div class="row ${isToday}">
-                <div style="font-weight:700;">${d}/${m}</div>
-                <div style="color:${color}; font-weight:700;">${day}</div>
+                <div style="font-weight:700; color:#1e3a8a">${d}/${month}</div>
+                <div style="color:${dayColor}; font-weight:700;">${dayName}</div>
                 <div><input type="text" inputmode="decimal" class="ot-input" data-id="day-${d}" oninput="calculateAll(); autoLocalSave();"></div>
                 <div id="amt-${d}" style="font-weight:800; color:#16a34a">0.00</div>
             </div>`;
         }
         document.getElementById('calendarRows').innerHTML = html;
-        calculateAll();
     };
 
-    window.calculateAll = () => {
-        const sal = parseFloat(document.getElementById('baseSalary').value) || 0;
+    window.calculateAll = function() {
+        const salary = parseFloat(document.getElementById('baseSalary').value) || 0;
         const rate = parseFloat(document.getElementById('otRate').value) || 0;
         const pkr = parseFloat(document.getElementById('pkrRate').value) || 0;
-        const act = parseFloat(document.getElementById('actualSalaryInput').value) || 0;
-        let hrs = 0;
-        document.querySelectorAll('.ot-input').forEach(i => {
-            const h = parseFloat(i.value) || 0; hrs += h;
-            const id = i.dataset.id.split('-')[1];
-            if(document.getElementById(`amt-${id}`)) document.getElementById(`amt-${id}`).innerText = (h * rate).toFixed(2);
+        const actualFixed = parseFloat(document.getElementById('actualSalaryInput').value) || 0;
+
+        let tHrs = 0;
+        document.querySelectorAll('.ot-input').forEach((input, i) => {
+            const h = parseFloat(input.value) || 0; tHrs += h;
+            const amtDiv = document.getElementById(`amt-${i+1}`); 
+            if(amtDiv) amtDiv.innerText = (h * rate).toFixed(2);
         });
-        const otSAR = hrs * rate;
-        document.getElementById('totalHrs').innerText = hrs;
+
+        const otSAR = tHrs * rate;
+        const totalSAR = salary + otSAR;
+        
+        document.getElementById('totalHrs').innerText = tHrs;
         document.getElementById('totalOT').innerText = otSAR.toFixed(2);
-        document.getElementById('grandSAR').innerText = (sal + otSAR).toFixed(2) + " SAR";
-        document.getElementById('grandPKR').innerText = "PKR " + ((sal + otSAR) * pkr).toLocaleString();
-        document.getElementById('displayActual').innerText = "ACTUAL: " + (act + otSAR).toFixed(2);
+        document.getElementById('grandSAR').innerText = totalSAR.toFixed(2) + " SAR";
+        document.getElementById('grandPKR').innerText = (totalSAR * pkr).toLocaleString(undefined, {minimumFractionDigits: 2});
+        
+        // Display Actual Salary
+        document.getElementById('displayActual').innerText = (actualFixed + otSAR).toFixed(2) + " SAR";
     };
 
-    window.updateCharts = () => {
-        const y = document.getElementById('yearSelectAnalytics').value;
+    window.updateCharts = function() {
+        const ctxBar = document.getElementById('otBarChart').getContext('2d');
+        const ctxPie = document.getElementById('incomePieChart').getContext('2d');
+
+        // Logic for fetching monthly data from LocalStorage to populate charts
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        const data = months.map((_, i) => {
-            const d = JSON.parse(localStorage.getItem(`ot_data_${y}_${i+1}`)) || {};
-            let t = 0; if(d.overtime) Object.values(d.overtime).forEach(v => t += parseFloat(v) || 0); return t;
+        const otData = months.map((_, i) => {
+            const data = JSON.parse(localStorage.getItem(`ot_data_${document.getElementById('yearSelectAnalytics').value}_${i+1}`)) || {};
+            let total = 0;
+            if(data.overtime) Object.values(data.overtime).forEach(v => total += parseFloat(v) || 0);
+            return total;
         });
-        if(bar) bar.destroy();
-        bar = new Chart(document.getElementById('otBarChart'), { type:'bar', data:{ labels:months, datasets:[{label:'OT Hours', data, backgroundColor:'#3b82f6'}] } });
-        if(pie) pie.destroy();
-        pie = new Chart(document.getElementById('incomePieChart'), { type:'doughnut', data:{ labels:months, datasets:[{data: data.map(v=>v||0.1), backgroundColor:['#1e3a8a','#3b82f6','#60a5fa','#93c5fd','#bfdbfe']}] } });
+
+        if(barChart) barChart.destroy();
+        barChart = new Chart(ctxBar, {
+            type: 'bar',
+            data: { labels: months, datasets: [{ label: 'OT Hours', data: otData, backgroundColor: '#3b82f6', borderRadius: 8 }] }
+        });
+
+        if(pieChart) pieChart.destroy();
+        pieChart = new Chart(ctxPie, {
+            type: 'doughnut',
+            data: { labels: months, datasets: [{ data: otData.map(v => v || 1), backgroundColor: ['#1e3a8a','#3b82f6','#60a5fa','#93c5fd','#bfdbfe','#2563eb','#1d4ed8','#1e40af','#1e3a8a','#3b82f6','#60a5fa','#93c5fd'] }] }
+        });
     };
 
-    window.autoLocalSave = () => {
-        const y = document.getElementById('yearSelect').value, m = document.getElementById('monthSelect').value, ot = {};
-        document.querySelectorAll('.ot-input').forEach(i => { if(i.value) ot[i.dataset.id] = i.value; });
-        const data = { settings:{ baseSalary:document.getElementById('baseSalary').value, otRate:document.getElementById('otRate').value, pkrRate:document.getElementById('pkrRate').value, actualSalary:document.getElementById('actualSalaryInput').value }, overtime:ot };
-        localStorage.setItem(`ot_data_${y}_${m}`, JSON.stringify(data));
+    window.autoLocalSave = function() {
+        const year = document.getElementById('yearSelect').value, month = document.getElementById('monthSelect').value, overtime = {};
+        document.querySelectorAll('.ot-input').forEach(input => { if(input.value) overtime[input.dataset.id] = input.value; });
+        const data = { 
+            settings: { 
+                baseSalary: document.getElementById('baseSalary').value, 
+                otRate: document.getElementById('otRate').value, 
+                pkrRate: document.getElementById('pkrRate').value,
+                actualSalary: document.getElementById('actualSalaryInput').value 
+            }, 
+            overtime 
+        };
+        localStorage.setItem(`ot_data_${year}_${month}`, JSON.stringify(data));
     };
 
-    function applyData(v) {
-        if(!v) return;
-        if(v.settings) {
-            document.getElementById('baseSalary').value = v.settings.baseSalary || 3000;
-            document.getElementById('otRate').value = v.settings.otRate || 17.72;
-            document.getElementById('pkrRate').value = v.settings.pkrRate || 75.5;
-            document.getElementById('actualSalaryInput').value = v.settings.actualSalary || 0;
+    function applyData(val) {
+        if(val.settings) {
+            document.getElementById('baseSalary').value = val.settings.baseSalary || 3000;
+            document.getElementById('otRate').value = val.settings.otRate || 17.72;
+            document.getElementById('pkrRate').value = val.settings.pkrRate || 75.50;
+            document.getElementById('actualSalaryInput').value = val.settings.actualSalary || 0;
         }
-        if(v.overtime) { for(let k in v.overtime) { const i = document.querySelector(`[data-id="${k}"]`); if(i) i.value = v.overtime[k]; } }
-        calculateAll();
+        if(val.overtime) {
+            for(let key in val.overtime) {
+                const input = document.querySelector(`[data-id="${key}"]`);
+                if(input) input.value = val.overtime[key];
+            }
+        }
+        window.calculateAll();
     }
 
-    function showToast(m) { const t = document.getElementById("toast"); t.innerText = m; t.className = "show"; setTimeout(() => t.className = "", 2500); }
-    window.toggleModal = () => { const s = document.getElementById('settingsModal').style; s.display = s.display === 'block' ? 'none' : 'block'; };
+    function showToast(msg) {
+        const t = document.getElementById("toast"); t.innerText = msg; t.className = "show";
+        setTimeout(() => { t.className = t.className.replace("show", ""); }, 2500);
+    }
 
-    window.onload = () => {
-        const ms = document.getElementById('monthSelect'), ys = document.getElementById('yearSelect'), ya = document.getElementById('yearSelectAnalytics'), n = new Date();
-        ["January","February","March","April","May","June","July","August","September","October","November","December"].forEach((name, i) => {
-            let o = new Option(name, i + 1); if(i === n.getMonth()) o.selected = true; ms.add(o);
-        });
+    window.toggleModal = () => { document.getElementById('settingsModal').style.display = (document.getElementById('settingsModal').style.display === 'block') ? 'none' : 'block'; };
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const m = document.getElementById('monthSelect'), y = document.getElementById('yearSelect'), ya = document.getElementById('yearSelectAnalytics'), now = new Date();
+        const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+        months.forEach((name, i) => { let opt = new Option(name, i + 1); if(i === now.getMonth()) opt.selected = true; m.add(opt); });
         for(let i=0; i<5; i++) {
-            const yr = n.getFullYear()-i;
-            ys.add(new Option(yr, yr));
+            const yr = now.getFullYear()-i;
+            y.add(new Option(yr, yr));
             ya.add(new Option(yr, yr));
         }
-        window.initCalendar();
-    };
+        window.loadUserData();
+    });
 </script>
 </body>
 </html>
