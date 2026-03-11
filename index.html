@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Haseeb OT Tracker - History</title>
+    <title>Haseeb OT Tracker</title>
     
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1976d2">
+    <meta name="theme-color" content="#1e3a8a">
     <script>
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('service-worker.js');
@@ -14,37 +14,88 @@
     </script>
 
     <style>
-        :root { --primary: #1976d2; --bg: #f0f2f5; --card: #ffffff; }
-        body { font-family: sans-serif; margin: 0; background: var(--bg); padding-bottom: 20px; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--primary); color: white; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .settings-btn { font-size: 24px; cursor: pointer; background: none; border: none; color: white; }
-        
-        /* Selectors Styling */
-        .selector-container { display: flex; gap: 10px; padding: 10px; background: #fff; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        select { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd; font-size: 1em; font-weight: bold; }
+        :root { 
+            --primary-gradient: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            --bg: #f8fafc; 
+            --card: #ffffff; 
+            --accent: #2e7d32;
+        }
 
-        .app-container { padding: 10px; max-width: 600px; margin: auto; }
-        .summary-section { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .card { background: var(--card); padding: 12px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; }
-        .card span { display: block; font-size: 1.1em; font-weight: bold; color: var(--primary); margin-top: 5px; }
-        .full-card { grid-column: span 2; background: #e3f2fd; }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; background: var(--bg); padding-bottom: 20px; color: #334155; }
         
-        .list-container { background: var(--card); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .list-header { display: grid; grid-template-columns: 2.5fr 1.5fr 1.5fr 2fr; background: #e0e0e0; padding: 12px 5px; font-weight: bold; text-align: center; }
-        .row { display: grid; grid-template-columns: 2.5fr 1.5fr 1.5fr 2fr; padding: 10px 5px; border-bottom: 1px solid #eee; align-items: center; text-align: center; }
-        .row input { width: 50px; padding: 8px 2px; border: 1px solid #ddd; border-radius: 6px; text-align: center; font-size: 1.1em; font-weight: bold; }
+        /* Modernized Header */
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 18px 20px; 
+            background: var(--primary-gradient); 
+            color: white; 
+            position: sticky; 
+            top: 0; 
+            z-index: 100; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+        }
+
+        .header-title { 
+            font-size: 1.3em; 
+            font-weight: 700; 
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .settings-btn { 
+            font-size: 26px; 
+            cursor: pointer; 
+            background: rgba(255,255,255,0.2); 
+            border: none; 
+            color: white; 
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease;
+        }
+
+        .settings-btn:active { transform: rotate(45deg) scale(0.9); }
+
+        .selector-container { display: flex; gap: 12px; padding: 15px; background: #fff; margin: 10px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+        select { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 1em; font-weight: 600; background-color: #f1f5f9; color: #1e293b; outline: none; }
+
+        .app-container { padding: 5px 15px; max-width: 600px; margin: auto; }
+
+        .summary-section { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .card { background: var(--card); padding: 15px; border-radius: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; border: 1px solid #f1f5f9; }
+        .card div { font-size: 0.85em; color: #64748b; font-weight: 600; text-transform: uppercase; }
+        .card span { display: block; font-size: 1.4em; font-weight: 800; color: #1e3a8a; margin-top: 5px; }
+        .full-card { grid-column: span 2; background: #eff6ff; border: 1px solid #bfdbfe; }
+        .full-card span { color: #2563eb; }
+
+        .list-container { background: var(--card); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
+        .list-header { display: grid; grid-template-columns: 2.2fr 1.3fr 1.5fr 2fr; background: #f8fafc; padding: 15px 5px; font-weight: 700; text-align: center; border-bottom: 2px solid #e2e8f0; font-size: 0.9em; color: #475569; }
+        .row { display: grid; grid-template-columns: 2.2fr 1.3fr 1.5fr 2fr; padding: 12px 5px; border-bottom: 1px solid #f1f5f9; align-items: center; text-align: center; }
         
-        .amt-col { font-weight: 600; color: #2e7d32; }
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-        .modal-content { background: white; margin: 15% auto; padding: 20px; border-radius: 15px; width: 85%; max-width: 400px; }
-        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1em; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .save-all-btn { background: #2e7d32; margin-top: 20px; position: sticky; bottom: 10px; z-index: 90; }
+        .row input { width: 55px; padding: 10px 2px; border: 2px solid #e2e8f0; border-radius: 8px; text-align: center; font-size: 1.1em; font-weight: 700; color: #1e293b; transition: all 0.2s; }
+        .row input:focus { border-color: #3b82f6; outline: none; background: #f0f9ff; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        
+        .amt-col { font-weight: 700; color: #16a34a; font-size: 1em; }
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+        .modal-content { background: white; margin: 15% auto; padding: 25px; border-radius: 20px; width: 85%; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
+        .modal-content h3 { margin-top: 0; color: #1e293b; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+        
+        button { width: 100%; padding: 14px; background: var(--primary-gradient); color: white; border: none; border-radius: 12px; font-size: 1.1em; font-weight: 700; cursor: pointer; margin-top: 15px; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); }
+        .save-all-btn { background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); margin-top: 25px; position: sticky; bottom: 15px; z-index: 90; box-shadow: 0 10px 15px -3px rgba(22, 163, 74, 0.3); }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div style="font-weight: bold;">Haseeb OT Tracker</div>
+    <div class="header-title">HASEEB OT TRACKER</div>
     <button class="settings-btn" onclick="toggleModal()">⚙️</button>
 </div>
 
@@ -55,27 +106,31 @@
 
 <div class="app-container">
     <div class="summary-section">
-        <div class="card">OT Hours <span id="dispTotalHours">0</span></div>
-        <div class="card">OT (SAR) <span id="dispTotalOT_SAR">0.00</span></div>
-        <div class="full-card card">Total (Salary + OT in PKR) <span id="dispGrandTotal_PKR">0.00</span></div>
+        <div class="card"><div>OT Hours</div><span id="dispTotalHours">0</span></div>
+        <div class="card"><div>OT (SAR)</div><span id="dispTotalOT_SAR">0.00</span></div>
+        <div class="full-card card"><div>Grand Total (Salary + OT) in PKR</div><span id="dispGrandTotal_PKR">0.00</span></div>
     </div>
-    <div class="list-container"><div id="calendarRows"></div></div>
-    <button class="save-all-btn" id="finalSaveBtn">Save to Cloud</button>
+    
+    <div class="list-container">
+        <div id="calendarRows"></div>
+    </div>
+    
+    <button class="save-all-btn" id="finalSaveBtn">SAVE TO CLOUD</button>
 </div>
 
 <div id="settingsModal" class="modal">
     <div class="modal-content">
         <h3>App Settings</h3>
-        <label>Salary (SAR)</label><input type="number" id="baseSalary" value="3000" oninput="calculateAll()" style="width:90%; padding:8px; margin-bottom:10px;">
-        <label>OT Rate</label><input type="number" id="otRate" value="17.72" step="0.01" oninput="calculateAll()" style="width:90%; padding:8px; margin-bottom:10px;">
-        <label>PKR Rate</label><input type="number" id="pkrRate" value="75.50" oninput="calculateAll()" style="width:90%; padding:8px; margin-bottom:10px;">
-        <button onclick="toggleModal()">Done</button>
+        <label style="font-size:0.9em; font-weight:600;">Salary (SAR)</label><input type="number" id="baseSalary" value="3000" oninput="calculateAll()" style="width:90%; padding:10px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
+        <label style="font-size:0.9em; font-weight:600;">OT Rate/Hr</label><input type="number" id="otRate" value="17.72" step="0.01" oninput="calculateAll()" style="width:90%; padding:10px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
+        <label style="font-size:0.9em; font-weight:600;">Exchange Rate (PKR)</label><input type="number" id="pkrRate" value="75.50" step="0.1" oninput="calculateAll()" style="width:90%; padding:10px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
+        <button onclick="toggleModal()">DONE</button>
     </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-  import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAywmVNaLkyudJelZ-Gdx6gL1hydzxe2cg",
@@ -88,14 +143,11 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // Save Data based on Year and Month
   window.saveData = async () => {
     const year = document.getElementById('yearSelect').value;
     const month = document.getElementById('monthSelect').value;
     const hoursData = {};
-    document.querySelectorAll('.ot-input').forEach(input => {
-        hoursData[input.dataset.id] = input.value;
-    });
+    document.querySelectorAll('.ot-input').forEach(input => hoursData[input.dataset.id] = input.value);
 
     const payload = {
         settings: {
@@ -108,18 +160,15 @@
 
     try {
         await set(ref(db, `data/${year}/${month}`), payload);
-        alert(`Data for ${month}/${year} saved!`);
-    } catch (e) { alert("Error saving data!"); }
+        alert("Data Sync Successful! ✅");
+    } catch (e) { alert("Sync Error!"); }
   };
 
-  // Load Specific Month/Year Data
   window.loadSpecificData = () => {
     const year = document.getElementById('yearSelect').value;
     const month = document.getElementById('monthSelect').value;
-    
-    // Reset inputs before loading
     document.querySelectorAll('.ot-input').forEach(input => input.value = "");
-    initCalendar(); // Refresh days in month
+    initCalendar(); 
 
     onValue(ref(db, `data/${year}/${month}`), (snapshot) => {
         const data = snapshot.val();
@@ -155,22 +204,16 @@
         const ySelect = document.getElementById('yearSelect');
         const now = new Date();
         const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-        
-        // Months populate
         months.forEach((m, i) => {
             let opt = document.createElement('option');
-            opt.value = i + 1;
-            opt.text = m;
+            opt.value = i + 1; opt.text = m;
             if(i === now.getMonth()) opt.selected = true;
             mSelect.appendChild(opt);
         });
-
-        // Last 5 Years populate
         const currentYear = now.getFullYear();
         for(let i = 0; i < 6; i++) {
             let opt = document.createElement('option');
-            opt.value = currentYear - i;
-            opt.text = currentYear - i;
+            opt.value = currentYear - i; opt.text = currentYear - i;
             ySelect.appendChild(opt);
         }
     }
@@ -180,17 +223,14 @@
         const month = parseInt(document.getElementById('monthSelect').value);
         const year = parseInt(document.getElementById('yearSelect').value);
         const daysInMonth = new Date(year, month, 0).getDate();
-        
-        let html = '<div class="list-header"><div>Date</div><div>Day</div><div>Hrs</div><div>SAR</div></div>';
+        let html = '<div class="list-header"><div>DATE</div><div>DAY</div><div>HRS</div><div>SAR</div></div>';
         for (let d = 1; d <= daysInMonth; d++) {
             const dayName = new Date(year, month - 1, d).toLocaleDateString('en-US', { weekday: 'short' });
             html += `
                 <div class="row">
-                    <div>${d}/${month}</div>
-                    <div style="color:${dayName==='Sun'?'red':'#666'}">${dayName}</div>
-                    <div>
-                        <input type="text" inputmode="decimal" class="ot-input" data-id="day-${d}" value="" oninput="calculateAll()">
-                    </div>
+                    <div style="font-weight:600;">${d}/${month}</div>
+                    <div style="color:${dayName==='Sun'?'#ef4444':'#64748b'}; font-weight:600;">${dayName}</div>
+                    <div><input type="text" inputmode="decimal" class="ot-input" data-id="day-${d}" value="" oninput="calculateAll()"></div>
                     <div class="amt-col" id="amt-${d}">0.00</div>
                 </div>`;
         }
@@ -198,22 +238,19 @@
     }
 
     window.calculateAll = function() {
-        const baseSalary = parseFloat(document.getElementById('baseSalary').value) || 0;
-        const otRate = parseFloat(document.getElementById('otRate').value) || 0;
-        const pkrRate = parseFloat(document.getElementById('pkrRate').value) || 0;
-        
-        let totalHours = 0;
+        const salary = parseFloat(document.getElementById('baseSalary').value) || 0;
+        const rate = parseFloat(document.getElementById('otRate').value) || 0;
+        const pkr = parseFloat(document.getElementById('pkrRate').value) || 0;
+        let totalH = 0;
         document.querySelectorAll('.ot-input').forEach((input, i) => {
             const hrs = parseFloat(input.value) || 0;
-            totalHours += hrs;
+            totalH += hrs;
             const amtDiv = document.getElementById(`amt-${i+1}`);
-            if(amtDiv) amtDiv.innerText = (hrs * otRate).toFixed(2);
+            if(amtDiv) amtDiv.innerText = (hrs * rate).toFixed(2);
         });
-
-        const totalOT_SAR = totalHours * otRate;
-        document.getElementById('dispTotalHours').innerText = totalHours;
-        document.getElementById('dispTotalOT_SAR').innerText = totalOT_SAR.toFixed(2);
-        document.getElementById('dispGrandTotal_PKR').innerText = ((baseSalary + totalOT_SAR) * pkrRate).toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('dispTotalHours').innerText = totalH;
+        document.getElementById('dispTotalOT_SAR').innerText = (totalH * rate).toFixed(2);
+        document.getElementById('dispGrandTotal_PKR').innerText = ((salary + (totalH * rate)) * pkr).toLocaleString(undefined, {minimumFractionDigits: 2});
     }
 </script>
 </body>
