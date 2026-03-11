@@ -5,32 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>OT Tracker Pro</title>
     <style>
-        :root { 
-            --primary: #1e3a8a; 
-            --gradient: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); 
-            --bg: #f8fafc; 
-        }
-        
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #334155; min-height: 100vh; }
+        :root { --primary: #1e3a8a; --gradient: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); --bg: #f8fafc; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #334155; }
 
-        /* 1. Loading Screen (Fixes the Flash) */
-        #loadingScreen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--gradient);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 20000; color: white;
-        }
-        .spinner {
-            width: 45px; height: 45px;
-            border: 4px solid rgba(255,255,255,0.2);
-            border-top: 4px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* 2. Login Screen */
+        /* Login Screen - Initially Hidden if user exists in local storage */
         #loginScreen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--gradient);
@@ -40,7 +18,7 @@
         .login-box { 
             background: rgba(255,255,255,0.15); padding: 40px 25px; border-radius: 28px; 
             backdrop-filter: blur(15px); text-align: center; width: 85%; max-width: 350px; 
-            border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.2); 
         }
         .google-btn { 
             width: 100%; padding: 15px; margin-top: 25px; border-radius: 14px; border: none; 
@@ -48,61 +26,37 @@
             display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 16px;
         }
 
-        /* 3. Main Dashboard UI */
+        /* Main Dashboard */
         #mainApp { display: none; padding-bottom: 120px; }
-        .header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 18px 20px; background: var(--gradient); color: white; 
-            position: sticky; top: 0; z-index: 100; 
-            border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; background: var(--gradient); color: white; position: sticky; top: 0; z-index: 100; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
         .app-container { padding: 10px 15px; max-width: 600px; margin: auto; }
-        
         .selector-container { display: flex; gap: 10px; margin: 15px 0; }
-        select { 
-            flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; 
-            font-weight: 600; background: #fff; outline: none; font-size: 15px;
-        }
+        select { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; font-weight: 600; background: #fff; outline: none; }
 
         .top-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .mini-card { background: #fff; padding: 15px; border-radius: 18px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-        .mini-card div { font-size: 10px; color: #64748b; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-        .mini-card span { font-size: 20px; font-weight: 800; color: var(--primary); display: block; margin-top: 5px; }
+        .mini-card span { font-size: 20px; font-weight: 800; color: var(--primary); display: block; }
 
-        .list-container { background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #f1f5f9; }
+        .list-container { background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
         .row { display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 2fr; padding: 14px 5px; border-bottom: 1px solid #f8fafc; align-items: center; text-align: center; font-size: 14px; }
-        .row input { width: 45px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 10px; text-align: center; font-weight: 700; background: #fcfcfc; }
-        .row input:focus { border-color: var(--primary); background: #f0f7ff; outline: none; }
+        .row input { width: 45px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 10px; text-align: center; font-weight: 700; }
 
         .final-summary { margin-top: 20px; background: #eff6ff; border-radius: 24px; padding: 25px; text-align: center; border: 1px solid #dbeafe; }
-        .grand-pkr { font-size: 34px; font-weight: 900; color: #2563eb; margin-top: 5px; }
+        .grand-pkr { font-size: 34px; font-weight: 900; color: #2563eb; }
 
-        .save-all-btn { 
-            position: fixed; bottom: 30px; right: 20px; padding: 18px 30px; 
-            background: #16a34a; color: white; border: none; border-radius: 50px; 
-            font-weight: 800; z-index: 999; box-shadow: 0 10px 25px rgba(22,163,74,0.4); 
-            cursor: pointer; font-size: 16px; border: 2px solid rgba(255,255,255,0.2);
-        }
-
+        .save-all-btn { position: fixed; bottom: 30px; right: 20px; padding: 18px 30px; background: #16a34a; color: white; border: none; border-radius: 50px; font-weight: 800; z-index: 999; box-shadow: 0 10px 25px rgba(22,163,74,0.4); cursor: pointer; }
         .settings-btn { background: rgba(255,255,255,0.2); border: none; color: white; width: 42px; height: 42px; border-radius: 50%; font-size: 20px; cursor: pointer; }
 
         .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); }
-        .modal-content { background: white; margin: 15% auto; padding: 25px; border-radius: 28px; width: 80%; max-width: 350px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
-        .modal-content input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 12px; border: 1px solid #ddd; box-sizing: border-box; }
+        .modal-content { background: white; margin: 15% auto; padding: 25px; border-radius: 28px; width: 80%; max-width: 350px; }
     </style>
 </head>
 <body>
 
-<div id="loadingScreen">
-    <div class="spinner"></div>
-    <p style="font-weight: 600; letter-spacing: 1px;">Verifying Session...</p>
-</div>
-
 <div id="loginScreen">
     <div class="login-box">
-        <h1 style="margin:0; font-size:26px; letter-spacing:-0.5px;">OT Tracker Pro</h1>
-        <p style="opacity:0.8; font-size:14px; margin-top:8px;">Synchronize your overtime data securely</p>
+        <h1 style="margin:0; font-size:26px;">OT Tracker Pro</h1>
+        <p style="opacity:0.8; font-size:14px;">Instant Sync Dashboard</p>
         <button class="google-btn" onclick="window.googleLogin()">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20"> Sign in with Google
         </button>
@@ -112,8 +66,8 @@
 <div id="mainApp">
     <div class="header">
         <div>
-            <div style="font-weight:800; font-size:18px; letter-spacing: 0.5px;">DASHBOARD</div>
-            <div id="userName" style="font-size:11px; opacity:0.9; font-weight: 400;">User</div>
+            <div style="font-weight:800; font-size:18px;">DASHBOARD</div>
+            <div id="userName" style="font-size:11px; opacity:0.9;">User</div>
         </div>
         <button class="settings-btn" onclick="toggleModal()">⚙️</button>
     </div>
@@ -123,35 +77,28 @@
             <select id="monthSelect"></select>
             <select id="yearSelect"></select>
         </div>
-
         <div class="top-summary">
             <div class="mini-card"><div>Total Hours</div><span id="totalHrs">0</span></div>
             <div class="mini-card"><div>OT SAR</div><span id="totalOT">0.00</span></div>
         </div>
-
         <div class="list-container" id="calendarRows"></div>
-
         <div class="final-summary">
-            <div style="font-weight: 800; color: #1e40af; font-size: 11px; letter-spacing: 1px;">MONTHLY GRAND TOTAL</div>
-            <div style="font-size: 22px; font-weight: 800; color: #1e3a8a; margin: 5px 0;" id="grandSAR">0.00 SAR</div>
-            <div class="grand-pkr"><small style="font-size:16px; opacity: 0.7;">PKR</small> <span id="grandPKR">0.00</span></div>
+            <div style="font-weight: 800; color: #1e40af; font-size: 11px;">GRAND TOTAL</div>
+            <div style="font-size: 22px; font-weight: 800;" id="grandSAR">0.00 SAR</div>
+            <div class="grand-pkr"><small style="font-size:16px;">PKR</small> <span id="grandPKR">0.00</span></div>
         </div>
-        
-        <button class="save-all-btn" onclick="window.saveUserData()">☁️ SYNC TO CLOUD</button>
+        <button class="save-all-btn" onclick="window.saveUserData()">☁️ SYNC DATA</button>
     </div>
 </div>
 
 <div id="settingsModal" class="modal">
     <div class="modal-content">
-        <h3 style="margin-top:0; color: var(--primary);">System Settings</h3>
-        <label style="font-size: 13px; font-weight: 700;">Base Salary (SAR)</label>
-        <input type="number" id="baseSalary" value="3000" oninput="calculateAll()">
-        <label style="font-size: 13px; font-weight: 700;">OT Rate (1 Hr)</label>
-        <input type="number" id="otRate" value="17.72" step="0.01" oninput="calculateAll()">
-        <label style="font-size: 13px; font-weight: 700;">Exchange Rate (PKR)</label>
-        <input type="number" id="pkrRate" value="75.50" step="0.1" oninput="calculateAll()">
-        <button onclick="toggleModal()" style="width:100%; padding:14px; background:var(--primary); color:white; border:none; border-radius:14px; font-weight:800; cursor:pointer; margin-top:15px;">DONE</button>
-        <button onclick="window.logout()" style="width:100%; padding:14px; background:#ef4444; color:white; border:none; border-radius:14px; font-weight:800; cursor:pointer; margin-top:10px;">LOGOUT</button>
+        <h3>Settings</h3>
+        <input type="number" id="baseSalary" value="3000" oninput="calculateAll()" placeholder="Salary">
+        <input type="number" id="otRate" value="17.72" step="0.01" oninput="calculateAll()" placeholder="OT Rate">
+        <input type="number" id="pkrRate" value="75.50" step="0.1" oninput="calculateAll()" placeholder="PKR Rate">
+        <button onclick="toggleModal()" style="width:100%; padding:14px; background:var(--primary); color:white; border:none; border-radius:14px; margin-top:10px;">DONE</button>
+        <button onclick="window.logout()" style="width:100%; padding:14px; background:#ef4444; color:white; border:none; border-radius:14px; margin-top:10px;">LOGOUT</button>
     </div>
 </div>
 
@@ -172,29 +119,37 @@
   const db = getDatabase(app);
   const auth = getAuth(app);
 
+  // --- FAST LOAD LOGIC ---
+  // App khulne se pehle check karo ke kya user pehle se login tha?
+  const cachedUser = localStorage.getItem('ot_user_login');
+  if (cachedUser) {
+      document.getElementById('mainApp').style.display = 'block';
+      document.getElementById('userName').innerText = cachedUser;
+  } else {
+      document.getElementById('loginScreen').style.display = 'flex';
+  }
+
   window.googleLogin = () => {
       const provider = new GoogleAuthProvider();
-      signInWithPopup(auth, provider).catch(err => alert("Login Failed: " + err.message));
+      signInWithPopup(auth, provider).catch(err => alert(err.message));
   };
 
-  window.logout = () => signOut(auth).then(() => location.reload());
+  window.logout = () => {
+      localStorage.removeItem('ot_user_login');
+      signOut(auth).then(() => location.reload());
+  };
 
-  // Logic to handle Auth State
   onAuthStateChanged(auth, (user) => {
-      const loginScr = document.getElementById('loginScreen');
-      const mainApp = document.getElementById('mainApp');
-      const loadScr = document.getElementById('loadingScreen');
-
       if (user) {
-          loginScr.style.display = 'none';
-          mainApp.style.display = 'block';
-          document.getElementById('userName').innerText = user.displayName || user.email;
+          localStorage.setItem('ot_user_login', user.displayName || user.email);
+          document.getElementById('loginScreen').style.display = 'none';
+          document.getElementById('mainApp').style.display = 'block';
           window.loadUserData();
       } else {
-          loginScr.style.display = 'flex';
-          mainApp.style.display = 'none';
+          localStorage.removeItem('ot_user_login');
+          document.getElementById('loginScreen').style.display = 'flex';
+          document.getElementById('mainApp').style.display = 'none';
       }
-      loadScr.style.display = 'none'; // Session check done, hide spinner
   });
 
   window.saveUserData = async () => {
@@ -203,22 +158,14 @@
       const year = document.getElementById('yearSelect').value;
       const month = document.getElementById('monthSelect').value;
       const overtime = {};
-      document.querySelectorAll('.ot-input').forEach(input => {
-          if(input.value) overtime[input.dataset.id] = input.value;
-      });
-
+      document.querySelectorAll('.ot-input').forEach(input => { if(input.value) overtime[input.dataset.id] = input.value; });
       const data = {
-          settings: {
-              baseSalary: document.getElementById('baseSalary').value,
-              otRate: document.getElementById('otRate').value,
-              pkrRate: document.getElementById('pkrRate').value
-          },
+          settings: { baseSalary: document.getElementById('baseSalary').value, otRate: document.getElementById('otRate').value, pkrRate: document.getElementById('pkrRate').value },
           overtime: overtime
       };
-
       try {
           await set(ref(db, `users/${user.uid}/${year}/${month}`), data);
-          alert("Synced Successfully! ✅");
+          alert("Synced! ✅");
       } catch (e) { alert("Sync Error!"); }
   };
 
@@ -227,9 +174,7 @@
       if (!user) return;
       const year = document.getElementById('yearSelect').value;
       const month = document.getElementById('monthSelect').value;
-      
       if(window.initCalendar) window.initCalendar();
-
       onValue(ref(db, `users/${user.uid}/${year}/${month}`), (snapshot) => {
           const val = snapshot.val();
           if (val) {
@@ -255,19 +200,15 @@
 
 <script>
     window.initCalendar = function() {
-        const mSelect = document.getElementById('monthSelect');
-        const ySelect = document.getElementById('yearSelect');
-        if(!mSelect.value) return; 
-
-        const month = parseInt(mSelect.value);
-        const year = parseInt(ySelect.value);
+        const month = parseInt(document.getElementById('monthSelect').value);
+        const year = parseInt(document.getElementById('yearSelect').value);
+        if(!month) return;
         const days = new Date(year, month, 0).getDate();
-        
-        let html = '<div class="row" style="background:#f1f5f9; font-weight:800; font-size:11px; border-bottom: 2px solid #e2e8f0;"><div>DATE</div><div>DAY</div><div>HRS</div><div>SAR</div></div>';
+        let html = '<div class="row" style="background:#f1f5f9; font-weight:800; font-size:11px;"><div>DATE</div><div>DAY</div><div>HRS</div><div>SAR</div></div>';
         for (let d = 1; d <= days; d++) {
             const dayName = new Date(year, month - 1, d).toLocaleDateString('en-US', { weekday: 'short' });
             html += `<div class="row">
-                <div style="font-weight:700; color:#1e293b;">${d}/${month}</div>
+                <div style="font-weight:700;">${d}/${month}</div>
                 <div style="color:${dayName==='Sun'?'#ef4444':'#64748b'}; font-weight:700;">${dayName}</div>
                 <div><input type="text" inputmode="decimal" class="ot-input" data-id="day-${d}" oninput="calculateAll()"></div>
                 <div id="amt-${d}" style="font-weight:800; color:#16a34a">0.00</div>
