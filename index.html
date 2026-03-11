@@ -11,22 +11,18 @@
         :root { --primary: #1e3a8a; --gradient: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); --bg: #f8fafc; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #334155; -webkit-tap-highlight-color: transparent; }
 
-        /* Tabs System */
         .tabs-container { display: flex; background: #fff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 75px; z-index: 99; }
         .tab { flex: 1; padding: 15px; text-align: center; font-weight: 800; font-size: 14px; color: #64748b; cursor: pointer; transition: 0.3s; border-bottom: 3px solid transparent; }
         .tab.active { color: var(--primary); border-bottom-color: var(--primary); background: #f0f7ff; }
 
-        /* Login Screen */
         #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--gradient); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; color: white; }
         .login-box { background: rgba(255,255,255,0.15); padding: 40px 25px; border-radius: 28px; backdrop-filter: blur(15px); text-align: center; width: 85%; max-width: 350px; border: 1px solid rgba(255,255,255,0.2); }
         .google-btn { width: 100%; padding: 15px; margin-top: 25px; border-radius: 14px; border: none; background: #fff; color: #444; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 16px; }
 
-        /* Header */
         #mainApp { display: none; padding-bottom: 120px; }
         .header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; background: var(--gradient); color: white; position: sticky; top: 0; z-index: 100; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .profile-dp { width: 42px; height: 42px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.8); cursor: pointer; object-fit: cover; }
 
-        /* Dashboard Views */
         .view-content { display: none; padding: 10px 15px; max-width: 600px; margin: auto; }
         .view-content.active { display: block; }
 
@@ -44,7 +40,6 @@
 
         .save-all-btn { position: fixed; bottom: 30px; right: 20px; padding: 18px 30px; background: #16a34a; color: white; border: none; border-radius: 50px; font-weight: 800; z-index: 999; box-shadow: 0 10px 25px rgba(22,163,74,0.4); cursor: pointer; }
 
-        /* Modal Styles */
         .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); }
         .modal-content { background: white; margin: 12% auto; padding: 30px 25px; border-radius: 32px; width: 85%; max-width: 350px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
         .setting-field { margin-bottom: 15px; }
@@ -115,8 +110,9 @@
             <h4 style="margin:0 0 15px 0; color:var(--primary);">Month-wise OT Trend</h4>
             <canvas id="otBarChart"></canvas>
         </div>
-        <div style="background:#fff; border-radius:24px; padding:20px;">
-            <h4 style="margin:0 0 15px 0; color:var(--primary);">Income Breakdown (Upto Current Month)</h4>
+        <div style="background:#fff; border-radius:24px; padding:20px; text-align: center;">
+            <h4 id="pieChartTitle" style="margin:0 0 5px 0; color:var(--primary);">Income Breakdown</h4>
+            <div id="pieChartInfo" style="font-size: 14px; font-weight: 800; color: #2563eb; margin-bottom: 10px; height: 20px;">Click color for Actual Salary</div>
             <canvas id="incomePieChart"></canvas>
         </div>
     </div>
@@ -128,7 +124,7 @@
         <div class="setting-field"><label>Monthly Basic Salary</label><input type="number" id="baseSalary"></div>
         <div class="setting-field"><label>OT Rate (1 Hr)</label><input type="number" id="otRate" step="0.01"></div>
         <div class="setting-field"><label>PKR Rate</label><input type="number" id="pkrRate" step="0.1"></div>
-        <div class="setting-field"><label>Actual Salary (Month Specific)</label><input type="number" id="actualSalaryInput" placeholder="Enter for current view"></div>
+        <div class="setting-field"><label>Actual Salary (Specific for month)</label><input type="number" id="actualSalaryInput"></div>
         
         <div class="modal-btns">
             <button class="btn-cancel" onclick="window.closeSettings()">CANCEL</button>
@@ -257,14 +253,15 @@
         document.getElementById('totalOT').innerText = otSAR.toFixed(2);
         document.getElementById('grandSAR').innerText = (salary + otSAR).toFixed(2) + " SAR";
         document.getElementById('grandPKR').innerText = ((salary + otSAR) * pkr).toLocaleString(undefined, {minimumFractionDigits: 2});
-        document.getElementById('displayActual').innerText = (actualFixed + otSAR).toFixed(2) + " SAR";
+        
+        // Dashboard actual show only input
+        document.getElementById('displayActual').innerText = actualFixed.toFixed(2) + " SAR";
     };
 
     window.updateCharts = function() {
         const year = document.getElementById('yearSelectAnalytics').value;
         const now = new Date();
         const currentMonth = (parseInt(year) === now.getFullYear()) ? now.getMonth() + 1 : 12;
-        
         const allMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         const filteredLabels = allMonths.slice(0, currentMonth);
         
@@ -290,8 +287,8 @@
                     if(item.length > 0) {
                         const idx = item[0].index;
                         const data = JSON.parse(localStorage.getItem(`ot_data_${year}_${idx+1}`)) || {};
-                        const act = data.settings?.actualSalary || "Not Set";
-                        alert(`${filteredLabels[idx]} Actual Salary: ${act} SAR`);
+                        const act = data.settings?.actualSalary || "0.00";
+                        document.getElementById('pieChartInfo').innerText = `${filteredLabels[idx]} Salary: ${act} SAR`;
                     }
                 }
             }
@@ -340,10 +337,10 @@
     window.saveAndCloseSettings = () => {
         window.calculateAll();
         window.autoLocalSave();
-        window.saveUserData(); // Cloud Sync
-        document.getElementById('actualSalaryInput').value = ""; // Reset box after save
+        window.saveUserData();
+        document.getElementById('actualSalaryInput').value = "";
         window.closeSettings();
-        showToast("Settings Saved & Synced ✅");
+        showToast("Saved & Synced ✅");
     };
 
     function showToast(msg) {
