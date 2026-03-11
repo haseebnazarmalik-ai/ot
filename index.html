@@ -29,7 +29,7 @@
 
         /* Tables & Inputs */
         .selector-container { display: flex; gap: 10px; margin-bottom: 15px; }
-        select { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; font-weight: 600; background: #fff; }
+        select { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; font-weight: 600; background: #fff; outline: none; }
         
         .row { display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 2fr; padding: 14px 5px; border-bottom: 1px solid #f1f5f9; align-items: center; text-align: center; font-size: 13px; background: white; }
         .row input { width: 45px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 10px; text-align: center; font-weight: 700; }
@@ -43,7 +43,7 @@
         /* Save Button */
         .save-all-btn { position: fixed; bottom: 30px; right: 20px; padding: 18px 30px; background: #16a34a; color: white; border: none; border-radius: 50px; font-weight: 800; z-index: 2000; box-shadow: 0 10px 25px rgba(22,163,74,0.4); cursor: pointer; }
 
-        /* Modal */
+        /* Modal Settings */
         .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); }
         .modal-content { background: white; margin: 15% auto; padding: 30px 25px; border-radius: 32px; width: 85%; max-width: 350px; }
         .setting-field { margin-bottom: 15px; }
@@ -71,7 +71,7 @@
     <div class="header">
         <div>
             <div style="font-weight:800; font-size:18px;">DASHBOARD</div>
-            <div id="userName" style="font-size:11px; opacity:0.9;">Loading...</div>
+            <div id="userName" style="font-size:11px; opacity:0.9;">Authenticating...</div>
         </div>
         <img id="userDP" class="profile-dp" src="https://www.w3schools.com/howto/img_avatar.png" onclick="toggleModal()">
     </div>
@@ -116,13 +116,13 @@
 
 <div id="settingsModal" class="modal">
     <div class="modal-content">
-        <h3 style="text-align:center; color:var(--primary);">Settings</h3>
-        <div class="setting-field"><label>Basic Salary</label><input type="number" id="baseSalary" oninput="calculateAll(); autoLocalSave();"></div>
-        <div class="setting-field"><label>OT Rate</label><input type="number" id="otRate" step="0.01" oninput="calculateAll(); autoLocalSave();"></div>
-        <div class="setting-field"><label>PKR Rate</label><input type="number" id="pkrRate" step="0.1" oninput="calculateAll(); autoLocalSave();"></div>
-        <div class="setting-field"><label>Actual Salary (Fixed)</label><input type="number" id="actualSalaryInput" oninput="calculateAll(); autoLocalSave();"></div>
-        <button onclick="toggleModal()" style="width:100%; padding:15px; background:var(--gradient); color:white; border:none; border-radius:12px; font-weight:800;">DONE</button>
-        <button onclick="window.logout()" style="width:100%; margin-top:20px; background:none; border:none; color:red; font-weight:700;">Logout</button>
+        <h3 style="text-align:center; color:var(--primary); margin-top:0;">Settings</h3>
+        <div class="setting-field"><label style="font-size:11px; font-weight:800; color:#64748b;">Basic Salary</label><input type="number" id="baseSalary" oninput="calculateAll(); autoLocalSave();"></div>
+        <div class="setting-field"><label style="font-size:11px; font-weight:800; color:#64748b;">OT Rate</label><input type="number" id="otRate" step="0.01" oninput="calculateAll(); autoLocalSave();"></div>
+        <div class="setting-field"><label style="font-size:11px; font-weight:800; color:#64748b;">PKR Rate</label><input type="number" id="pkrRate" step="0.1" oninput="calculateAll(); autoLocalSave();"></div>
+        <div class="setting-field"><label style="font-size:11px; font-weight:800; color:#64748b;">Actual Salary (Fixed)</label><input type="number" id="actualSalaryInput" oninput="calculateAll(); autoLocalSave();"></div>
+        <button onclick="toggleModal()" style="width:100%; padding:15px; background:var(--gradient); color:white; border:none; border-radius:12px; font-weight:800; cursor:pointer;">DONE</button>
+        <button onclick="window.logout()" style="width:100%; margin-top:20px; background:none; border:none; color:red; font-weight:700; cursor:pointer;">Logout</button>
     </div>
 </div>
 
@@ -143,13 +143,19 @@
   const db = getDatabase(app);
   const auth = getAuth(app);
 
+  // Redirect Result Checker (Fixes Login Loop)
+  getRedirectResult(auth).then((result) => {
+      if (result?.user) { showToast("Logged in successfully!"); }
+  }).catch((err) => { console.error("Redirect Error:", err); });
+
   // Login handler
   document.getElementById('googleLoginBtn').onclick = () => {
       const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
       signInWithRedirect(auth, provider);
   };
 
-  // Check login status
+  // Auth State Monitor
   onAuthStateChanged(auth, (user) => {
       if (user) {
           localStorage.setItem('ot_user_login', user.displayName);
@@ -160,6 +166,7 @@
           window.loadUserData();
       } else {
           document.getElementById('loginScreen').style.display = 'flex';
+          document.getElementById('mainApp').style.display = 'none';
       }
   });
 
@@ -177,8 +184,10 @@
               actualSalary: document.getElementById('actualSalaryInput').value
           }, overtime 
       };
-      await set(ref(db, `users/${user.uid}/${year}/${month}`), data);
-      showToast("Cloud Synced ✅");
+      try {
+          await set(ref(db, `users/${user.uid}/${year}/${month}`), data);
+          showToast("Cloud Synced ✅");
+      } catch(e) { alert("Sync Error: " + e.message); }
   };
 
   window.loadUserData = () => {
