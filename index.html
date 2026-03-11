@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Haseeb OT Tracker</title>
+    <link rel="manifest" href="manifest.json">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js');
+  }
+</script>
     <style>
         :root { --primary: #1976d2; --bg: #f0f2f5; --card: #ffffff; }
         body { font-family: sans-serif; margin: 0; background: var(--bg); padding-bottom: 20px; }
