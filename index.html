@@ -35,7 +35,13 @@
 
         /* Save Button */
         .save-all-btn { position: fixed; bottom: 30px; right: 20px; padding: 18px 30px; background: #16a34a; color: white; border: none; border-radius: 50px; font-weight: 800; z-index: 999; box-shadow: 0 10px 25px rgba(22,163,74,0.4); cursor: pointer; border: 2px solid rgba(255,255,255,0.2); }
-        .settings-btn { background: rgba(255,255,255,0.2); border: none; color: white; width: 42px; height: 42px; border-radius: 50%; font-size: 20px; cursor: pointer; }
+        <div class="header">
+    <div>
+        <div style="font-weight:800; font-size:18px;">DASHBOARD</div>
+        <div id="userName" style="font-size:11px; opacity:0.9;">Loading...</div>
+    </div>
+    <img id="userDP" class="profile-dp" src="https://www.w3schools.com/howto/img_avatar.png" onclick="toggleModal()">
+</div>
 
         /* Modern Settings Dialog */
         .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); animation: fadeIn 0.3s ease; }
@@ -52,6 +58,21 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         @keyframes fadeinout { 0%, 100% { opacity: 0; bottom: 80px; } 20%, 80% { opacity: 1; bottom: 100px; } }
+  
+    
+    .profile-dp {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.8);
+    cursor: pointer;
+    object-fit: cover;
+    transition: transform 0.2s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.profile-dp:active {
+    transform: scale(0.9);
+}
     </style>
 </head>
 <body>
@@ -153,16 +174,22 @@
   };
 
   onAuthStateChanged(auth, (user) => {
-      if (user) {
-          localStorage.setItem('ot_user_login', user.displayName || user.email);
-          document.getElementById('loginScreen').style.display = 'none';
-          document.getElementById('mainApp').style.display = 'block';
-          window.loadUserData();
-      } else {
-          document.getElementById('loginScreen').style.display = 'flex';
-          document.getElementById('mainApp').style.display = 'none';
-      }
-  });
+    if (user) {
+        localStorage.setItem('ot_user_login', user.displayName || user.email);
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        
+        // DP aur Name set karein
+        document.getElementById('userName').innerText = user.displayName || user.email;
+        if(user.photoURL) {
+            document.getElementById('userDP').src = user.photoURL;
+        }
+        
+        window.loadUserData();
+    } else {
+        // ... purana logout wala logic
+    }
+});
 
   window.saveUserData = async () => {
       const user = auth.currentUser;
@@ -225,6 +252,10 @@
       window.calculateAll();
   }
 </script>
+
+
+
+    
 
 <script>
     function showToast(msg) {
