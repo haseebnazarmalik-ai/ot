@@ -4,32 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Haseeb OT Tracker</title>
+    
     <link rel="manifest" href="manifest.json">
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js');
-  }
-</script>
+    <meta name="theme-color" content="#1976d2">
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js');
+      }
+    </script>
+
     <style>
         :root { --primary: #1976d2; --bg: #f0f2f5; --card: #ffffff; }
         body { font-family: sans-serif; margin: 0; background: var(--bg); padding-bottom: 20px; }
         
+        /* Header & Settings Icon */
         .header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--primary); color: white; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .settings-btn { font-size: 24px; cursor: pointer; background: none; border: none; color: white; }
 
         .app-container { padding: 10px; max-width: 600px; margin: auto; }
 
+        /* Summary Cards */
         .summary-section { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; margin-top: 10px; }
         .card { background: var(--card); padding: 12px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; }
         .card span { display: block; font-size: 1.1em; font-weight: bold; color: var(--primary); margin-top: 5px; }
         .full-card { grid-column: span 2; background: #e3f2fd; }
 
+        /* Excel-Style List */
         .list-container { background: var(--card); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .list-header { display: grid; grid-template-columns: 2.5fr 1.5fr 1.5fr 2fr; background: #e0e0e0; padding: 12px 5px; font-weight: bold; text-align: center; }
         .row { display: grid; grid-template-columns: 2.5fr 1.5fr 1.5fr 2fr; padding: 10px 5px; border-bottom: 1px solid #eee; align-items: center; text-align: center; }
-        .row input { width: 45px; padding: 5px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 1em; }
+        
+        /* Numeric Input Box Styling */
+        .row input { width: 50px; padding: 8px 2px; border: 1px solid #ddd; border-radius: 6px; text-align: center; font-size: 1.1em; font-weight: bold; color: #333; }
+        .row input:focus { border-color: var(--primary); outline: none; background: #fffde7; }
+        
         .amt-col { font-weight: 600; color: #2e7d32; }
 
+        /* Settings Modal Window */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
         .modal-content { background: white; margin: 15% auto; padding: 20px; border-radius: 15px; width: 85%; max-width: 400px; }
         .input-box { margin-bottom: 15px; }
@@ -38,7 +49,7 @@
         
         button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1em; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .close-btn { background: #666; }
-        .save-all-btn { background: #2e7d32; margin-top: 20px; position: sticky; bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .save-all-btn { background: #2e7d32; margin-top: 20px; position: sticky; bottom: 10px; z-index: 90; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
@@ -56,41 +67,46 @@
     </div>
 
     <div class="list-container">
-        <div class="list-header"><div>Date</div><div>Day</div><div>Hrs</div><div>SAR</div></div>
         <div id="calendarRows"></div>
     </div>
 
-    <button class="save-all-btn" id="finalSaveBtn">Save Everything to Cloud</button>
+    <button class="save-all-btn" id="finalSaveBtn">Save to Cloud (Firebase)</button>
 </div>
 
 <div id="settingsModal" class="modal">
     <div class="modal-content">
         <h3>App Settings</h3>
-        <div class="input-box"><label>Basic Salary (SAR)</label><input type="number" id="baseSalary" value="3000" oninput="calculateAll()"></div>
-        <div class="input-box"><label>OT Rate/Hr (SAR)</label><input type="number" id="otRate" value="17.72" step="0.01" oninput="calculateAll()"></div>
-        <div class="input-box"><label>SAR to PKR Rate</label><input type="number" id="pkrRate" value="75.50" step="0.1" oninput="calculateAll()"></div>
+        <div class="input-box">
+            <label>Basic Salary (SAR)</label>
+            <input type="number" id="baseSalary" value="3000" oninput="calculateAll()">
+        </div>
+        <div class="input-box">
+            <label>OT Rate/Hr (SAR)</label>
+            <input type="number" id="otRate" value="17.72" step="0.01" oninput="calculateAll()">
+        </div>
+        <div class="input-box">
+            <label>SAR to PKR Rate</label>
+            <input type="number" id="pkrRate" value="75.50" step="0.1" oninput="calculateAll()">
+        </div>
         <button class="close-btn" onclick="toggleModal()">Done</button>
     </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-  import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAywmVNaLkyudJelZ-Gdx6gL1hydzxe2cg",
     authDomain: "haseeb-984fc.firebaseapp.com",
     projectId: "haseeb-984fc",
     databaseURL: "https://haseeb-984fc-default-rtdb.firebaseio.com",
-    storageBucket: "haseeb-984fc.firebasestorage.app",
-    messagingSenderId: "868884894390",
     appId: "1:868884894390:web:09f2edf8a4ccebe909cc17"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // Function to Save Everything
   window.saveData = async () => {
     const hoursData = {};
     document.querySelectorAll('.ot-input').forEach(input => {
@@ -109,14 +125,12 @@
 
     try {
         await set(ref(db, 'user_data/'), payload);
-        alert("Data saved successfully!");
-    } catch (e) { alert("Error saving data. Check Firebase Rules!"); }
+        alert("Cloud par save ho gaya!");
+    } catch (e) { alert("Error saving data!"); }
   };
 
-  // Function to Load Data
   window.loadData = () => {
-    const dataRef = ref(db, 'user_data/');
-    onValue(dataRef, (snapshot) => {
+    onValue(ref(db, 'user_data/'), (snapshot) => {
         const data = snapshot.val();
         if (data) {
             if (data.settings) {
@@ -136,7 +150,7 @@
   };
 
   document.getElementById('finalSaveBtn').onclick = window.saveData;
-  window.onload = () => { window.initCalendar(); window.loadData(); };
+  window.onload = () => { initCalendar(); loadData(); };
 </script>
 
 <script>
@@ -145,19 +159,36 @@
         modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
     }
 
+    function handleInputFocus(el) {
+        if (el.value == "0") el.value = "";
+    }
+
+    function handleInputBlur(el) {
+        if (el.value == "") el.value = "0";
+        window.calculateAll();
+    }
+
     function initCalendar() {
         const rowContainer = document.getElementById('calendarRows');
         const now = new Date();
         const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-        let html = '';
+        let html = '<div class="list-header"><div>Date</div><div>Day</div><div>Hrs</div><div>SAR</div></div>';
         for (let d = 1; d <= daysInMonth; d++) {
-            const dateStr = `${d}/${now.getMonth() + 1}`;
             const dayName = new Date(now.getFullYear(), now.getMonth(), d).toLocaleDateString('en-US', { weekday: 'short' });
             html += `
                 <div class="row">
-                    <div>${dateStr}</div>
+                    <div>${d}/${now.getMonth() + 1}</div>
                     <div style="color:${dayName==='Sun'?'red':'#666'}">${dayName}</div>
-                    <div><input type="number" class="ot-input" data-id="day-${d}" value="0" oninput="calculateAll()"></div>
+                    <div>
+                        <input type="text" 
+                               inputmode="decimal" 
+                               class="ot-input" 
+                               data-id="day-${d}" 
+                               value="0" 
+                               onfocus="handleInputFocus(this)" 
+                               onblur="handleInputBlur(this)" 
+                               oninput="calculateAll()">
+                    </div>
                     <div class="amt-col" id="amt-${d}">0.00</div>
                 </div>`;
         }
@@ -173,9 +204,8 @@
         document.querySelectorAll('.ot-input').forEach((input, i) => {
             const hrs = parseFloat(input.value) || 0;
             totalHours += hrs;
-            const rowAmt = hrs * otRate;
             const amtDiv = document.getElementById(`amt-${i+1}`);
-            if(amtDiv) amtDiv.innerText = rowAmt.toFixed(2);
+            if(amtDiv) amtDiv.innerText = (hrs * otRate).toFixed(2);
         });
 
         const totalOT_SAR = totalHours * otRate;
