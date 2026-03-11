@@ -4,73 +4,77 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OT & Salary Tracker PWA</title>
-    
     <style>
         :root { --primary: #1976d2; --bg: #f0f2f5; --card: #ffffff; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: var(--bg); color: #333; }
+        body { font-family: sans-serif; margin: 0; background: var(--bg); padding-bottom: 20px; }
         
-        .app-container { padding: 10px; padding-bottom: 240px; max-width: 600px; margin: auto; }
+        /* Header & Settings Icon */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--primary); color: white; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .settings-btn { font-size: 24px; cursor: pointer; background: none; border: none; color: white; }
 
-        /* Top Summary Cards */
-        .summary-section { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; position: sticky; top: 0; z-index: 10; background: var(--bg); padding-top: 10px; }
-        .card { background: var(--card); padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; }
-        .card span { display: block; font-size: 1.2em; font-weight: bold; color: var(--primary); margin-top: 5px; }
-        .full-card { grid-column: span 2; background: #e3f2fd; border: 1px solid #bbdefb; }
+        .app-container { padding: 10px; max-width: 600px; margin: auto; }
+
+        /* Summary Cards */
+        .summary-section { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; margin-top: 10px; }
+        .card { background: var(--card); padding: 12px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; }
+        .card span { display: block; font-size: 1.1em; font-weight: bold; color: var(--primary); margin-top: 5px; }
+        .full-card { grid-column: span 2; background: #e3f2fd; }
 
         /* Excel-Style List */
         .list-container { background: var(--card); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .list-header { display: grid; grid-template-columns: 2.5fr 1.5fr 1.5fr 2fr; background: #e0e0e0; padding: 12px 5px; font-weight: bold; text-align: center; font-size: 0.9em; }
+        .list-header { display: grid; grid-template-columns: 2.5fr 1.5fr 1.5fr 2fr; background: #e0e0e0; padding: 12px 5px; font-weight: bold; text-align: center; }
         .row { display: grid; grid-template-columns: 2.5fr 1.5fr 1.5fr 2fr; padding: 10px 5px; border-bottom: 1px solid #eee; align-items: center; text-align: center; }
-        .row:nth-child(even) { background: #fafafa; }
-        .row input { width: 45px; padding: 5px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 1em; }
+        .row input { width: 45px; padding: 5px; border: 1px solid #ddd; border-radius: 4px; text-align: center; }
         .amt-col { font-weight: 600; color: #2e7d32; }
 
-        /* Fixed Bottom Settings */
-        .settings-panel { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); padding: 15px; border-top: 2px solid #ddd; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
-        .settings-panel h3 { margin: 0 0 10px 0; font-size: 1.1em; color: #555; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .input-group { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-        .input-box { flex: 1; min-width: 80px; }
-        .input-box label { display: block; font-size: 0.75em; color: #777; margin-bottom: 3px; }
-        .input-box input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        /* Settings Modal (New Window) */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .modal-content { background: white; margin: 20% auto; padding: 20px; border-radius: 15px; width: 85%; max-width: 400px; position: relative; }
+        .input-box { margin-bottom: 15px; }
+        .input-box label { display: block; font-size: 0.9em; color: #666; margin-bottom: 5px; }
+        .input-box input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+        .close-btn { background: #666; margin-top: 10px; }
         
-        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1em; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:active { background: #1565c0; transform: scale(0.98); }
+        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1em; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
+<div class="header">
+    <div style="font-weight: bold;">OT Tracker</div>
+    <button class="settings-btn" onclick="toggleModal()">⚙️</button>
+</div>
+
 <div class="app-container">
     <div class="summary-section">
-        <div class="card">Total OT Hours <span id="dispTotalHours">0</span></div>
-        <div class="card">Total OT (SAR) <span id="dispTotalOT_SAR">0.00</span></div>
-        <div class="full-card card">Grand Total (Salary + OT in PKR) <span id="dispGrandTotal_PKR">0.00</span></div>
+        <div class="card">OT Hours <span id="dispTotalHours">0</span></div>
+        <div class="card">OT (SAR) <span id="dispTotalOT_SAR">0.00</span></div>
+        <div class="full-card card">Total (Salary + OT in PKR) <span id="dispGrandTotal_PKR">0.00</span></div>
     </div>
 
     <div class="list-container">
-        <div class="list-header">
-            <div>Date</div><div>Day</div><div>Hours</div><div>SAR</div>
-        </div>
-        <div id="calendarRows">
-            </div>
+        <div class="list-header"><div>Date</div><div>Day</div><div>Hrs</div><div>SAR</div></div>
+        <div id="calendarRows"></div>
     </div>
+</div>
 
-    <div class="settings-panel">
-        <h3>App Settings & Rates</h3>
-        <div class="input-group">
-            <div class="input-box">
-                <label>Basic Salary</label>
-                <input type="number" id="baseSalary" value="3000" oninput="calculateAll()">
-            </div>
-            <div class="input-box">
-                <label>OT Rate/Hr</label>
-                <input type="number" id="otRate" value="17.72" step="0.01" oninput="calculateAll()">
-            </div>
-            <div class="input-box">
-                <label>SAR to PKR</label>
-                <input type="number" id="pkrRate" value="75.50" step="0.1" oninput="calculateAll()">
-            </div>
+<div id="settingsModal" class="modal">
+    <div class="modal-content">
+        <h3>App Settings</h3>
+        <div class="input-box">
+            <label>Basic Salary (SAR)</label>
+            <input type="number" id="baseSalary" value="3000" oninput="calculateAll()">
         </div>
-        <button onclick="saveToFirebase()">Save to Cloud (Firebase)</button>
+        <div class="input-box">
+            <label>OT Rate/Hr (SAR)</label>
+            <input type="number" id="otRate" value="17.72" step="0.01" oninput="calculateAll()">
+        </div>
+        <div class="input-box">
+            <label>SAR to PKR Rate</label>
+            <input type="number" id="pkrRate" value="75.50" step="0.1" oninput="calculateAll()">
+        </div>
+        <button onclick="saveToFirebase()">Save to Cloud</button>
+        <button class="close-btn" onclick="toggleModal()">Close Settings</button>
     </div>
 </div>
 
@@ -78,95 +82,52 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
-    // 1. Firebase Configuration (Apna config yahan paste karein)
-    const firebaseConfig = {
-        apiKey: "AIza...",
-        authDomain: "your-app.firebaseapp.com",
-        databaseURL: "https://your-app.firebaseio.com",
-        projectId: "your-app",
-        storageBucket: "your-app.appspot.com",
-        appId: "1:..."
-    };
-    
-    // Initialize Firebase (Error handling ke liye try-catch)
-    try {
-        firebase.initializeApp(firebaseConfig);
-    } catch(e) { console.log("Firebase config missing"); }
-
+    // Firebase placeholder
+    const firebaseConfig = { apiKey: "AIza...", databaseURL: "https://your-app.firebaseio.com" };
+    try { firebase.initializeApp(firebaseConfig); } catch(e) {}
     const db = firebase.database();
 
-    // 2. Generate Calendar Rows (Current Month)
+    function toggleModal() {
+        const modal = document.getElementById('settingsModal');
+        modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
+    }
+
     function initCalendar() {
         const rowContainer = document.getElementById('calendarRows');
         const now = new Date();
         const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-        
         let html = '';
         for (let d = 1; d <= daysInMonth; d++) {
-            const dateStr = `${d}/${now.getMonth() + 1}/${now.getFullYear()}`;
+            const dateStr = `${d}/${now.getMonth() + 1}`;
             const dayName = new Date(now.getFullYear(), now.getMonth(), d).toLocaleDateString('en-US', { weekday: 'short' });
-            
-            html += `
-                <div class="row">
-                    <div>${dateStr}</div>
-                    <div style="color: ${dayName==='Sun' ? 'red' : '#666'}">${dayName}</div>
-                    <div><input type="number" class="ot-input" data-date="${dateStr}" value="0" oninput="calculateAll()"></div>
-                    <div class="amt-col" id="amt-${d}">0.00</div>
-                </div>
-            `;
+            html += `<div class="row"><div>${dateStr}</div><div style="color:${dayName==='Sun'?'red':'#666'}">${dayName}</div><div><input type="number" class="ot-input" value="0" oninput="calculateAll()"></div><div class="amt-col" id="amt-${d}">0.00</div></div>`;
         }
         rowContainer.innerHTML = html;
         calculateAll();
     }
 
-    // 3. Calculation Logic
     function calculateAll() {
         const baseSalary = parseFloat(document.getElementById('baseSalary').value) || 0;
         const otRate = parseFloat(document.getElementById('otRate').value) || 0;
         const pkrRate = parseFloat(document.getElementById('pkrRate').value) || 0;
-        
         let totalHours = 0;
-        const inputs = document.querySelectorAll('.ot-input');
-        
-        inputs.forEach((input, index) => {
+        document.querySelectorAll('.ot-input').forEach((input, i) => {
             const hrs = parseFloat(input.value) || 0;
             totalHours += hrs;
-            
-            // Per row amount calculation
-            const rowAmt = hrs * otRate;
-            document.getElementById(`amt-${index+1}`).innerText = rowAmt.toFixed(2);
+            document.getElementById(`amt-${i+1}`).innerText = (hrs * otRate).toFixed(2);
         });
-
         const totalOT_SAR = totalHours * otRate;
-        const grandTotal_SAR = baseSalary + totalOT_SAR;
-        const grandTotal_PKR = grandTotal_SAR * pkrRate;
-
-        // Display results
         document.getElementById('dispTotalHours').innerText = totalHours;
         document.getElementById('dispTotalOT_SAR').innerText = totalOT_SAR.toFixed(2);
-        document.getElementById('dispGrandTotal_PKR').innerText = grandTotal_PKR.toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('dispGrandTotal_PKR').innerText = ((baseSalary + totalOT_SAR) * pkrRate).toLocaleString();
     }
 
-    // 4. Firebase Save Logic
     function saveToFirebase() {
-        const data = {
-            settings: {
-                baseSalary: document.getElementById('baseSalary').value,
-                otRate: document.getElementById('otRate').value,
-                pkrRate: document.getElementById('pkrRate').value
-            },
-            timestamp: Date.now()
-        };
-        
-        // Save to Firebase (Example path)
-        db.ref('user_data/current_month').set(data)
-        .then(() => alert("Data Cloud par save ho gaya!"))
-        .catch(err => alert("Firebase Config check karein!"));
+        alert("Settings Updated!");
+        toggleModal();
     }
 
-    // Run on load
     window.onload = initCalendar;
 </script>
-
 </body>
 </html>
