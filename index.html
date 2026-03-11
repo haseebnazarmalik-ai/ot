@@ -57,6 +57,7 @@
         .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); }
         .modal-content { background: white; margin: 12% auto; padding: 30px 25px; border-radius: 32px; width: 85%; max-width: 350px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
         .setting-field { margin-bottom: 15px; }
+        .setting-field label { font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 5px; display: block; }
         .setting-field input { width: 100%; padding: 14px; border-radius: 14px; border: 1px solid #e2e8f0; font-weight: 700; box-sizing: border-box; }
 
         #toast { visibility: hidden; min-width: 200px; background-color: #333; color: #fff; text-align: center; border-radius: 50px; padding: 12px 24px; position: fixed; z-index: 2000; bottom: 100px; left: 50%; transform: translateX(-50%); font-weight: 600; }
@@ -132,7 +133,7 @@
         <div class="setting-field"><label>Monthly Basic Salary</label><input type="number" id="baseSalary" oninput="calculateAll(); autoLocalSave();"></div>
         <div class="setting-field"><label>OT Rate (1 Hr)</label><input type="number" id="otRate" step="0.01" oninput="calculateAll(); autoLocalSave();"></div>
         <div class="setting-field"><label>PKR Rate</label><input type="number" id="pkrRate" step="0.1" oninput="calculateAll(); autoLocalSave();"></div>
-        <div class="setting-field"><label>Actual Salary (Fixed)</label><input type="number" id="actualSalaryInput" oninput="calculateAll(); autoLocalSave();"></div>
+        <div class="setting-field"><label>Actual Salary (Fixed for this Month)</label><input type="number" id="actualSalaryInput" oninput="calculateAll(); autoLocalSave();"></div>
         
         <button class="done-btn" onclick="toggleModal()" style="width:100%; padding:16px; background:var(--gradient); color:white; border:none; border-radius:16px; font-weight:800; cursor:pointer;">DONE</button>
         <button onclick="window.logout()" style="width:100%; margin-top:15px; background:none; border:none; color:#ef4444; font-weight:700; cursor:pointer;">Logout</button>
@@ -232,11 +233,7 @@
         for (let d = 1; d <= days; d++) {
             const dateObj = new Date(year, month - 1, d);
             const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
-            
-            // Highlight Current Day
             const isToday = (d === currentDay && month === currentMonth && year === currentYear) ? 'current-day-highlight' : '';
-            
-            // Friday Red
             const dayColor = (dayName === 'Fri') ? '#ef4444' : '#64748b';
 
             html += `<div class="row ${isToday}">
@@ -270,15 +267,12 @@
         document.getElementById('grandSAR').innerText = totalSAR.toFixed(2) + " SAR";
         document.getElementById('grandPKR').innerText = (totalSAR * pkr).toLocaleString(undefined, {minimumFractionDigits: 2});
         
-        // Display Actual Salary
         document.getElementById('displayActual').innerText = (actualFixed + otSAR).toFixed(2) + " SAR";
     };
 
     window.updateCharts = function() {
         const ctxBar = document.getElementById('otBarChart').getContext('2d');
         const ctxPie = document.getElementById('incomePieChart').getContext('2d');
-
-        // Logic for fetching monthly data from LocalStorage to populate charts
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         const otData = months.map((_, i) => {
             const data = JSON.parse(localStorage.getItem(`ot_data_${document.getElementById('yearSelectAnalytics').value}_${i+1}`)) || {};
@@ -317,10 +311,10 @@
 
     function applyData(val) {
         if(val.settings) {
-            document.getElementById('baseSalary').value = val.settings.baseSalary || 3000;
+            document.getElementById('baseSalary').value = val.settings.baseSalary || 2835;
             document.getElementById('otRate').value = val.settings.otRate || 17.72;
-            document.getElementById('pkrRate').value = val.settings.pkrRate || 75.50;
-            document.getElementById('actualSalaryInput').value = val.settings.actualSalary || 0;
+            document.getElementById('pkrRate').value = val.settings.pkrRate || 74.2;
+            document.getElementById('actualSalaryInput').value = val.settings.actualSalary || "";
         }
         if(val.overtime) {
             for(let key in val.overtime) {
@@ -336,7 +330,20 @@
         setTimeout(() => { t.className = t.className.replace("show", ""); }, 2500);
     }
 
-    window.toggleModal = () => { document.getElementById('settingsModal').style.display = (document.getElementById('settingsModal').style.display === 'block') ? 'none' : 'block'; };
+    window.toggleModal = () => { 
+        const modal = document.getElementById('settingsModal');
+        if (modal.style.display !== 'block') {
+            // Modal khulne par Default values check karna
+            if(!document.getElementById('baseSalary').value) document.getElementById('baseSalary').value = 2835;
+            if(!document.getElementById('otRate').value) document.getElementById('otRate').value = 17.72;
+            if(!document.getElementById('pkrRate').value) document.getElementById('pkrRate').value = 74.2;
+            modal.style.display = 'block';
+        } else {
+            // Modal band (DONE) hone par Actual Salary reset
+            document.getElementById('actualSalaryInput').value = "";
+            modal.style.display = 'none';
+        }
+    };
 
     window.addEventListener('DOMContentLoaded', () => {
         const m = document.getElementById('monthSelect'), y = document.getElementById('yearSelect'), ya = document.getElementById('yearSelectAnalytics'), now = new Date();
