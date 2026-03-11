@@ -6,11 +6,6 @@
     <title>OT Tracker Pro</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1976d2">
-    <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('service-worker.js');
-      }
-    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --primary: #1e3a8a; --gradient: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); --bg: #f8fafc; }
@@ -31,26 +26,22 @@
         .header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; background: var(--gradient); color: white; position: sticky; top: 0; z-index: 100; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .profile-dp { width: 42px; height: 42px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.8); cursor: pointer; object-fit: cover; }
 
-        /* Dashboard & Analytics Views */
+        /* Dashboard Views */
         .view-content { display: none; padding: 10px 15px; max-width: 600px; margin: auto; }
         .view-content.active { display: block; }
 
-        /* Selectors */
         .selector-container { display: flex; gap: 10px; margin: 15px 0; }
         select { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; font-weight: 600; background: #fff; outline: none; }
 
-        /* Calendar Row Styling */
         .row { display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 2fr; padding: 14px 5px; border-bottom: 1px solid #f8fafc; align-items: center; text-align: center; font-size: 13px; }
         .row input { width: 45px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 10px; text-align: center; font-weight: 700; }
         .current-day-highlight { background-color: #dcfce7 !important; border-left: 5px solid #22c55e; }
 
-        /* Summary Cards */
         .top-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .mini-card { background: #fff; padding: 15px; border-radius: 18px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .final-summary { margin-top: 20px; background: #eff6ff; border-radius: 24px; padding: 25px; text-align: center; border: 1px solid #dbeafe; }
         .actual-salary-row { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #bfdbfe; color: #1e3a8a; font-weight: 900; font-size: 18px; }
 
-        /* Save Button */
         .save-all-btn { position: fixed; bottom: 30px; right: 20px; padding: 18px 30px; background: #16a34a; color: white; border: none; border-radius: 50px; font-weight: 800; z-index: 999; box-shadow: 0 10px 25px rgba(22,163,74,0.4); cursor: pointer; }
 
         /* Modal Styles */
@@ -60,6 +51,10 @@
         .setting-field label { font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 5px; display: block; }
         .setting-field input { width: 100%; padding: 14px; border-radius: 14px; border: 1px solid #e2e8f0; font-weight: 700; box-sizing: border-box; }
 
+        .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-done { flex: 2; padding: 16px; background: var(--gradient); color: white; border: none; border-radius: 16px; font-weight: 800; cursor: pointer; }
+        .btn-cancel { flex: 1; padding: 16px; background: #f1f5f9; color: #64748b; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; }
+
         #toast { visibility: hidden; min-width: 200px; background-color: #333; color: #fff; text-align: center; border-radius: 50px; padding: 12px 24px; position: fixed; z-index: 2000; bottom: 100px; left: 50%; transform: translateX(-50%); font-weight: 600; }
         #toast.show { visibility: visible; animation: fadeinout 2.5s; }
         @keyframes fadeinout { 0%, 100% { opacity: 0; bottom: 80px; } 20%, 80% { opacity: 1; bottom: 100px; } }
@@ -67,7 +62,7 @@
 </head>
 <body>
 
-<div id="toast">File Saved ✅</div>
+<div id="toast">Saved ✅</div>
 
 <div id="loginScreen">
     <div class="login-box">
@@ -84,7 +79,7 @@
             <div style="font-weight:800; font-size:18px;">DASHBOARD</div>
             <div id="userName" style="font-size:11px; opacity:0.9;">User</div>
         </div>
-        <img id="userDP" class="profile-dp" src="https://www.w3schools.com/howto/img_avatar.png" onclick="toggleModal()">
+        <img id="userDP" class="profile-dp" src="https://www.w3schools.com/howto/img_avatar.png" onclick="window.openSettings()">
     </div>
 
     <div class="tabs-container">
@@ -121,7 +116,7 @@
             <canvas id="otBarChart"></canvas>
         </div>
         <div style="background:#fff; border-radius:24px; padding:20px;">
-            <h4 style="margin:0 0 15px 0; color:var(--primary);">Annual Income Breakdown (%)</h4>
+            <h4 style="margin:0 0 15px 0; color:var(--primary);">Income Breakdown (Upto Current Month)</h4>
             <canvas id="incomePieChart"></canvas>
         </div>
     </div>
@@ -130,13 +125,16 @@
 <div id="settingsModal" class="modal">
     <div class="modal-content">
         <h3 style="margin-top:0; color:var(--primary); text-align:center;">Settings</h3>
-        <div class="setting-field"><label>Monthly Basic Salary</label><input type="number" id="baseSalary" oninput="calculateAll(); autoLocalSave();"></div>
-        <div class="setting-field"><label>OT Rate (1 Hr)</label><input type="number" id="otRate" step="0.01" oninput="calculateAll(); autoLocalSave();"></div>
-        <div class="setting-field"><label>PKR Rate</label><input type="number" id="pkrRate" step="0.1" oninput="calculateAll(); autoLocalSave();"></div>
-        <div class="setting-field"><label>Actual Salary (Fixed for this Month)</label><input type="number" id="actualSalaryInput" oninput="calculateAll(); autoLocalSave();"></div>
+        <div class="setting-field"><label>Monthly Basic Salary</label><input type="number" id="baseSalary"></div>
+        <div class="setting-field"><label>OT Rate (1 Hr)</label><input type="number" id="otRate" step="0.01"></div>
+        <div class="setting-field"><label>PKR Rate</label><input type="number" id="pkrRate" step="0.1"></div>
+        <div class="setting-field"><label>Actual Salary (Month Specific)</label><input type="number" id="actualSalaryInput" placeholder="Enter for current view"></div>
         
-        <button class="done-btn" onclick="toggleModal()" style="width:100%; padding:16px; background:var(--gradient); color:white; border:none; border-radius:16px; font-weight:800; cursor:pointer;">DONE</button>
-        <button onclick="window.logout()" style="width:100%; margin-top:15px; background:none; border:none; color:#ef4444; font-weight:700; cursor:pointer;">Logout</button>
+        <div class="modal-btns">
+            <button class="btn-cancel" onclick="window.closeSettings()">CANCEL</button>
+            <button class="btn-done" onclick="window.saveAndCloseSettings()">SAVE & DONE</button>
+        </div>
+        <button onclick="window.logout()" style="width:100%; margin-top:20px; background:none; border:none; color:#ef4444; font-weight:700; cursor:pointer;">Logout</button>
     </div>
 </div>
 
@@ -159,7 +157,6 @@
 
   onAuthStateChanged(auth, (user) => {
       if (user) {
-          localStorage.setItem('ot_user_login', user.displayName || user.email);
           if(user.photoURL) document.getElementById('userDP').src = user.photoURL;
           document.getElementById('loginScreen').style.display = 'none';
           document.getElementById('mainApp').style.display = 'block';
@@ -187,7 +184,7 @@
           overtime 
       };
       await set(ref(db, `users/${user.uid}/${year}/${month}`), data);
-      showToast("File Saved ✅");
+      showToast("Cloud Synced ✅");
   };
 
   window.loadUserData = () => {
@@ -225,15 +222,11 @@
         const year = parseInt(document.getElementById('yearSelect').value);
         const days = new Date(year, month, 0).getDate();
         const today = new Date();
-        const currentDay = today.getDate();
-        const currentMonth = today.getMonth() + 1;
-        const currentYear = today.getFullYear();
-
         let html = '<div class="row" style="background:#f1f5f9; font-weight:800; font-size:10px;"><div>DATE</div><div>DAY</div><div>HRS</div><div>SAR</div></div>';
         for (let d = 1; d <= days; d++) {
             const dateObj = new Date(year, month - 1, d);
             const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
-            const isToday = (d === currentDay && month === currentMonth && year === currentYear) ? 'current-day-highlight' : '';
+            const isToday = (d === today.getDate() && month === (today.getMonth()+1) && year === today.getFullYear()) ? 'current-day-highlight' : '';
             const dayColor = (dayName === 'Fri') ? '#ef4444' : '#64748b';
 
             html += `<div class="row ${isToday}">
@@ -260,37 +253,48 @@
         });
 
         const otSAR = tHrs * rate;
-        const totalSAR = salary + otSAR;
-        
         document.getElementById('totalHrs').innerText = tHrs;
         document.getElementById('totalOT').innerText = otSAR.toFixed(2);
-        document.getElementById('grandSAR').innerText = totalSAR.toFixed(2) + " SAR";
-        document.getElementById('grandPKR').innerText = (totalSAR * pkr).toLocaleString(undefined, {minimumFractionDigits: 2});
-        
+        document.getElementById('grandSAR').innerText = (salary + otSAR).toFixed(2) + " SAR";
+        document.getElementById('grandPKR').innerText = ((salary + otSAR) * pkr).toLocaleString(undefined, {minimumFractionDigits: 2});
         document.getElementById('displayActual').innerText = (actualFixed + otSAR).toFixed(2) + " SAR";
     };
 
     window.updateCharts = function() {
-        const ctxBar = document.getElementById('otBarChart').getContext('2d');
-        const ctxPie = document.getElementById('incomePieChart').getContext('2d');
-        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        const otData = months.map((_, i) => {
-            const data = JSON.parse(localStorage.getItem(`ot_data_${document.getElementById('yearSelectAnalytics').value}_${i+1}`)) || {};
+        const year = document.getElementById('yearSelectAnalytics').value;
+        const now = new Date();
+        const currentMonth = (parseInt(year) === now.getFullYear()) ? now.getMonth() + 1 : 12;
+        
+        const allMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const filteredLabels = allMonths.slice(0, currentMonth);
+        
+        const otData = filteredLabels.map((_, i) => {
+            const data = JSON.parse(localStorage.getItem(`ot_data_${year}_${i+1}`)) || {};
             let total = 0;
             if(data.overtime) Object.values(data.overtime).forEach(v => total += parseFloat(v) || 0);
             return total;
         });
 
         if(barChart) barChart.destroy();
-        barChart = new Chart(ctxBar, {
+        barChart = new Chart(document.getElementById('otBarChart'), {
             type: 'bar',
-            data: { labels: months, datasets: [{ label: 'OT Hours', data: otData, backgroundColor: '#3b82f6', borderRadius: 8 }] }
+            data: { labels: filteredLabels, datasets: [{ label: 'OT Hours', data: otData, backgroundColor: '#3b82f6', borderRadius: 8 }] }
         });
 
         if(pieChart) pieChart.destroy();
-        pieChart = new Chart(ctxPie, {
+        pieChart = new Chart(document.getElementById('incomePieChart'), {
             type: 'doughnut',
-            data: { labels: months, datasets: [{ data: otData.map(v => v || 1), backgroundColor: ['#1e3a8a','#3b82f6','#60a5fa','#93c5fd','#bfdbfe','#2563eb','#1d4ed8','#1e40af','#1e3a8a','#3b82f6','#60a5fa','#93c5fd'] }] }
+            data: { labels: filteredLabels, datasets: [{ data: otData.map(v => v || 0.1), backgroundColor: ['#1e3a8a','#3b82f6','#60a5fa','#93c5fd','#bfdbfe','#2563eb','#1d4ed8','#1e40af','#1e3a8a','#3b82f6','#60a5fa','#93c5fd'] }] },
+            options: {
+                onClick: (evt, item) => {
+                    if(item.length > 0) {
+                        const idx = item[0].index;
+                        const data = JSON.parse(localStorage.getItem(`ot_data_${year}_${idx+1}`)) || {};
+                        const act = data.settings?.actualSalary || "Not Set";
+                        alert(`${filteredLabels[idx]} Actual Salary: ${act} SAR`);
+                    }
+                }
+            }
         });
     };
 
@@ -325,27 +329,29 @@
         window.calculateAll();
     }
 
-    function showToast(msg) {
-        const t = document.getElementById("toast"); t.innerText = msg; t.className = "show";
-        setTimeout(() => { t.className = t.className.replace("show", ""); }, 2500);
-    }
-
-    window.toggleModal = () => { 
-        const modal = document.getElementById('settingsModal');
-        if (modal.style.display !== 'block') {
-            // Modal khulne par Default values check karna
-            if(!document.getElementById('baseSalary').value) document.getElementById('baseSalary').value = 2835;
-            if(!document.getElementById('otRate').value) document.getElementById('otRate').value = 17.72;
-            if(!document.getElementById('pkrRate').value) document.getElementById('pkrRate').value = 74.2;
-            modal.style.display = 'block';
-        } else {
-            // Modal band (DONE) hone par Actual Salary reset
-            document.getElementById('actualSalaryInput').value = "";
-            modal.style.display = 'none';
-        }
+    window.openSettings = () => {
+        const b = document.getElementById('baseSalary');
+        if(!b.value) { b.value = 2835; document.getElementById('otRate').value = 17.72; document.getElementById('pkrRate').value = 74.2; }
+        document.getElementById('settingsModal').style.display = 'block';
     };
 
-    window.addEventListener('DOMContentLoaded', () => {
+    window.closeSettings = () => { document.getElementById('settingsModal').style.display = 'none'; };
+
+    window.saveAndCloseSettings = () => {
+        window.calculateAll();
+        window.autoLocalSave();
+        window.saveUserData(); // Cloud Sync
+        document.getElementById('actualSalaryInput').value = ""; // Reset box after save
+        window.closeSettings();
+        showToast("Settings Saved & Synced ✅");
+    };
+
+    function showToast(msg) {
+        const t = document.getElementById("toast"); t.innerText = msg; t.className = "show";
+        setTimeout(() => { t.className = ""; }, 2500);
+    }
+
+    window.onload = () => {
         const m = document.getElementById('monthSelect'), y = document.getElementById('yearSelect'), ya = document.getElementById('yearSelectAnalytics'), now = new Date();
         const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
         months.forEach((name, i) => { let opt = new Option(name, i + 1); if(i === now.getMonth()) opt.selected = true; m.add(opt); });
@@ -355,7 +361,7 @@
             ya.add(new Option(yr, yr));
         }
         window.loadUserData();
-    });
+    };
 </script>
 </body>
 </html>
