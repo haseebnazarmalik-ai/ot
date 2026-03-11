@@ -6,57 +6,62 @@
     <title>OT Tracker Pro</title>
     <style>
         :root { --primary: #1e3a8a; --gradient: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); --bg: #f8fafc; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #334155; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #334155; -webkit-tap-highlight-color: transparent; }
 
-        /* Login Screen - Initially Hidden if user exists in local storage */
-        #loginScreen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--gradient);
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 10000; color: white;
-        }
-        .login-box { 
-            background: rgba(255,255,255,0.15); padding: 40px 25px; border-radius: 28px; 
-            backdrop-filter: blur(15px); text-align: center; width: 85%; max-width: 350px; 
-            border: 1px solid rgba(255,255,255,0.2); 
-        }
-        .google-btn { 
-            width: 100%; padding: 15px; margin-top: 25px; border-radius: 14px; border: none; 
-            background: #fff; color: #444; font-weight: 700; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 16px;
-        }
+        /* Login Screen */
+        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--gradient); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; color: white; }
+        .login-box { background: rgba(255,255,255,0.15); padding: 40px 25px; border-radius: 28px; backdrop-filter: blur(15px); text-align: center; width: 85%; max-width: 350px; border: 1px solid rgba(255,255,255,0.2); }
+        .google-btn { width: 100%; padding: 15px; margin-top: 25px; border-radius: 14px; border: none; background: #fff; color: #444; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 16px; }
 
         /* Main Dashboard */
         #mainApp { display: none; padding-bottom: 120px; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; background: var(--gradient); color: white; position: sticky; top: 0; z-index: 100; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; background: var(--gradient); color: white; position: sticky; top: 0; z-index: 100; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .app-container { padding: 10px 15px; max-width: 600px; margin: auto; }
         .selector-container { display: flex; gap: 10px; margin: 15px 0; }
-        select { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; font-weight: 600; background: #fff; outline: none; }
+        select { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; font-weight: 600; background: #fff; outline: none; font-size: 14px; color: #1e3a8a; }
 
         .top-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .mini-card { background: #fff; padding: 15px; border-radius: 18px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-        .mini-card span { font-size: 20px; font-weight: 800; color: var(--primary); display: block; }
+        .mini-card { background: #fff; padding: 15px; border-radius: 18px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #f1f5f9; }
+        .mini-card div { font-size: 10px; color: #64748b; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        .mini-card span { font-size: 20px; font-weight: 800; color: var(--primary); display: block; margin-top: 4px; }
 
-        .list-container { background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
-        .row { display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 2fr; padding: 14px 5px; border-bottom: 1px solid #f8fafc; align-items: center; text-align: center; font-size: 14px; }
-        .row input { width: 45px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 10px; text-align: center; font-weight: 700; }
+        .list-container { background: #fff; border-radius: 22px; overflow: hidden; box-shadow: 0 4px 25px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
+        .row { display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 2fr; padding: 14px 5px; border-bottom: 1px solid #f8fafc; align-items: center; text-align: center; font-size: 13px; }
+        .row input { width: 45px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 10px; text-align: center; font-weight: 700; background: #fcfcfc; transition: 0.3s; }
+        .row input:focus { border-color: var(--primary); background: #f0f7ff; outline: none; }
 
         .final-summary { margin-top: 20px; background: #eff6ff; border-radius: 24px; padding: 25px; text-align: center; border: 1px solid #dbeafe; }
         .grand-pkr { font-size: 34px; font-weight: 900; color: #2563eb; }
 
-        .save-all-btn { position: fixed; bottom: 30px; right: 20px; padding: 18px 30px; background: #16a34a; color: white; border: none; border-radius: 50px; font-weight: 800; z-index: 999; box-shadow: 0 10px 25px rgba(22,163,74,0.4); cursor: pointer; }
+        /* Save Button */
+        .save-all-btn { position: fixed; bottom: 30px; right: 20px; padding: 18px 30px; background: #16a34a; color: white; border: none; border-radius: 50px; font-weight: 800; z-index: 999; box-shadow: 0 10px 25px rgba(22,163,74,0.4); cursor: pointer; border: 2px solid rgba(255,255,255,0.2); }
         .settings-btn { background: rgba(255,255,255,0.2); border: none; color: white; width: 42px; height: 42px; border-radius: 50%; font-size: 20px; cursor: pointer; }
 
-        .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); }
-        .modal-content { background: white; margin: 15% auto; padding: 25px; border-radius: 28px; width: 80%; max-width: 350px; }
+        /* Modern Settings Dialog */
+        .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); animation: fadeIn 0.3s ease; }
+        .modal-content { background: white; margin: 12% auto; padding: 30px 25px; border-radius: 32px; width: 85%; max-width: 350px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); position: relative; }
+        .modal-content h3 { margin: 0 0 20px 0; color: var(--primary); font-weight: 800; font-size: 22px; text-align: center; }
+        .setting-field { margin-bottom: 15px; }
+        .setting-field label { display: block; font-size: 11px; font-weight: 800; color: #64748b; margin-bottom: 5px; text-transform: uppercase; padding-left: 5px; }
+        .setting-field input { width: 100%; padding: 14px; border-radius: 14px; border: 1px solid #e2e8f0; font-weight: 700; font-size: 16px; box-sizing: border-box; background: #f8fafc; color: #1e3a8a; }
+        .done-btn { width: 100%; padding: 16px; background: var(--gradient); color: white; border: none; border-radius: 16px; font-weight: 800; font-size: 16px; margin-top: 10px; cursor: pointer; box-shadow: 0 8px 20px rgba(59,130,246,0.3); }
+
+        /* Toast Notification */
+        #toast { visibility: hidden; min-width: 200px; background-color: #333; color: #fff; text-align: center; border-radius: 50px; padding: 12px 24px; position: fixed; z-index: 2000; bottom: 100px; left: 50%; transform: translateX(-50%); font-weight: 600; font-size: 14px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        #toast.show { visibility: visible; animation: fadeinout 2.5s; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        @keyframes fadeinout { 0%, 100% { opacity: 0; bottom: 80px; } 20%, 80% { opacity: 1; bottom: 100px; } }
     </style>
 </head>
 <body>
 
+<div id="toast">File Saved ✅</div>
+
 <div id="loginScreen">
     <div class="login-box">
         <h1 style="margin:0; font-size:26px;">OT Tracker Pro</h1>
-        <p style="opacity:0.8; font-size:14px;">Instant Sync Dashboard</p>
+        <p style="opacity:0.8; font-size:14px;">Instant Access Dashboard</p>
         <button class="google-btn" onclick="window.googleLogin()">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20"> Sign in with Google
         </button>
@@ -67,15 +72,15 @@
     <div class="header">
         <div>
             <div style="font-weight:800; font-size:18px;">DASHBOARD</div>
-            <div id="userName" style="font-size:11px; opacity:0.9;">User</div>
+            <div id="userName" style="font-size:11px; opacity:0.9;">Loading Session...</div>
         </div>
         <button class="settings-btn" onclick="toggleModal()">⚙️</button>
     </div>
 
     <div class="app-container">
         <div class="selector-container">
-            <select id="monthSelect"></select>
-            <select id="yearSelect"></select>
+            <select id="monthSelect" onchange="window.loadUserData()"></select>
+            <select id="yearSelect" onchange="window.loadUserData()"></select>
         </div>
         <div class="top-summary">
             <div class="mini-card"><div>Total Hours</div><span id="totalHrs">0</span></div>
@@ -83,22 +88,31 @@
         </div>
         <div class="list-container" id="calendarRows"></div>
         <div class="final-summary">
-            <div style="font-weight: 800; color: #1e40af; font-size: 11px;">GRAND TOTAL</div>
-            <div style="font-size: 22px; font-weight: 800;" id="grandSAR">0.00 SAR</div>
+            <div style="font-weight: 800; color: #1e40af; font-size: 11px; letter-spacing: 1px;">MONTHLY GRAND TOTAL</div>
+            <div style="font-size: 22px; font-weight: 800; color: #1e3a8a;" id="grandSAR">0.00 SAR</div>
             <div class="grand-pkr"><small style="font-size:16px;">PKR</small> <span id="grandPKR">0.00</span></div>
         </div>
-        <button class="save-all-btn" onclick="window.saveUserData()">☁️ SYNC DATA</button>
+        <button class="save-all-btn" onclick="window.saveUserData()">☁️ SYNC TO CLOUD</button>
     </div>
 </div>
 
 <div id="settingsModal" class="modal">
     <div class="modal-content">
-        <h3>Settings</h3>
-        <input type="number" id="baseSalary" value="3000" oninput="calculateAll()" placeholder="Salary">
-        <input type="number" id="otRate" value="17.72" step="0.01" oninput="calculateAll()" placeholder="OT Rate">
-        <input type="number" id="pkrRate" value="75.50" step="0.1" oninput="calculateAll()" placeholder="PKR Rate">
-        <button onclick="toggleModal()" style="width:100%; padding:14px; background:var(--primary); color:white; border:none; border-radius:14px; margin-top:10px;">DONE</button>
-        <button onclick="window.logout()" style="width:100%; padding:14px; background:#ef4444; color:white; border:none; border-radius:14px; margin-top:10px;">LOGOUT</button>
+        <h3>App Settings</h3>
+        <div class="setting-field">
+            <label>Monthly Basic Salary</label>
+            <input type="number" id="baseSalary" value="3000" oninput="calculateAll()">
+        </div>
+        <div class="setting-field">
+            <label>Overtime Rate (1 Hr)</label>
+            <input type="number" id="otRate" value="17.72" step="0.01" oninput="calculateAll()">
+        </div>
+        <div class="setting-field">
+            <label>PKR Exchange Rate</label>
+            <input type="number" id="pkrRate" value="75.50" step="0.1" oninput="calculateAll()">
+        </div>
+        <button class="done-btn" onclick="toggleModal()">SAVE & CLOSE</button>
+        <button onclick="window.logout()" style="width:100%; margin-top:15px; background:none; border:none; color:#ef4444; font-weight:700; cursor:pointer;">Logout from Account</button>
     </div>
 </div>
 
@@ -119,8 +133,7 @@
   const db = getDatabase(app);
   const auth = getAuth(app);
 
-  // --- FAST LOAD LOGIC ---
-  // App khulne se pehle check karo ke kya user pehle se login tha?
+  // Instant Load Logic
   const cachedUser = localStorage.getItem('ot_user_login');
   if (cachedUser) {
       document.getElementById('mainApp').style.display = 'block';
@@ -135,7 +148,7 @@
   };
 
   window.logout = () => {
-      localStorage.removeItem('ot_user_login');
+      localStorage.clear();
       signOut(auth).then(() => location.reload());
   };
 
@@ -146,7 +159,6 @@
           document.getElementById('mainApp').style.display = 'block';
           window.loadUserData();
       } else {
-          localStorage.removeItem('ot_user_login');
           document.getElementById('loginScreen').style.display = 'flex';
           document.getElementById('mainApp').style.display = 'none';
       }
@@ -159,62 +171,99 @@
       const month = document.getElementById('monthSelect').value;
       const overtime = {};
       document.querySelectorAll('.ot-input').forEach(input => { if(input.value) overtime[input.dataset.id] = input.value; });
+
       const data = {
           settings: { baseSalary: document.getElementById('baseSalary').value, otRate: document.getElementById('otRate').value, pkrRate: document.getElementById('pkrRate').value },
           overtime: overtime
       };
+
       try {
           await set(ref(db, `users/${user.uid}/${year}/${month}`), data);
-          alert("Synced! ✅");
-      } catch (e) { alert("Sync Error!"); }
+          showToast("File Saved ✅");
+      } catch (e) { showToast("Sync Error! ❌"); }
   };
 
   window.loadUserData = () => {
       const user = auth.currentUser;
-      if (!user) return;
       const year = document.getElementById('yearSelect').value;
       const month = document.getElementById('monthSelect').value;
-      if(window.initCalendar) window.initCalendar();
-      onValue(ref(db, `users/${user.uid}/${year}/${month}`), (snapshot) => {
-          const val = snapshot.val();
-          if (val) {
-              if(val.settings) {
-                  document.getElementById('baseSalary').value = val.settings.baseSalary;
-                  document.getElementById('otRate').value = val.settings.otRate;
-                  document.getElementById('pkrRate').value = val.settings.pkrRate;
+      
+      window.initCalendar();
+
+      // Pehle Local Storage se uthao
+      const localKey = `ot_data_${year}_${month}`;
+      const localData = localStorage.getItem(localKey);
+      if(localData) {
+          const val = JSON.parse(localData);
+          applyData(val);
+      }
+
+      // Phir background mein Firebase se uthao (agar login hai)
+      if (user) {
+          onValue(ref(db, `users/${user.uid}/${year}/${month}`), (snapshot) => {
+              const val = snapshot.val();
+              if (val) {
+                  applyData(val);
+                  localStorage.setItem(localKey, JSON.stringify(val)); // Cache update karo
               }
-              if(val.overtime) {
-                  for(let key in val.overtime) {
-                      const input = document.querySelector(`[data-id="${key}"]`);
-                      if(input) input.value = val.overtime[key];
-                  }
-              }
-          }
-          if(window.calculateAll) window.calculateAll();
-      }, { onlyOnce: true });
+          }, { onlyOnce: true });
+      }
   };
 
-  document.getElementById('monthSelect').addEventListener('change', window.loadUserData);
-  document.getElementById('yearSelect').addEventListener('change', window.loadUserData);
+  function applyData(val) {
+      if(val.settings) {
+          document.getElementById('baseSalary').value = val.settings.baseSalary;
+          document.getElementById('otRate').value = val.settings.otRate;
+          document.getElementById('pkrRate').value = val.settings.pkrRate;
+      }
+      if(val.overtime) {
+          for(let key in val.overtime) {
+              const input = document.querySelector(`[data-id="${key}"]`);
+              if(input) input.value = val.overtime[key];
+          }
+      }
+      window.calculateAll();
+  }
 </script>
 
 <script>
+    function showToast(msg) {
+        const t = document.getElementById("toast");
+        t.innerText = msg;
+        t.className = "show";
+        setTimeout(() => { t.className = t.className.replace("show", ""); }, 2500);
+    }
+
     window.initCalendar = function() {
         const month = parseInt(document.getElementById('monthSelect').value);
         const year = parseInt(document.getElementById('yearSelect').value);
         if(!month) return;
         const days = new Date(year, month, 0).getDate();
-        let html = '<div class="row" style="background:#f1f5f9; font-weight:800; font-size:11px;"><div>DATE</div><div>DAY</div><div>HRS</div><div>SAR</div></div>';
+        let html = '<div class="row" style="background:#f1f5f9; font-weight:800; font-size:10px; color:#64748b;"><div>DATE</div><div>DAY</div><div>HRS</div><div>SAR</div></div>';
         for (let d = 1; d <= days; d++) {
             const dayName = new Date(year, month - 1, d).toLocaleDateString('en-US', { weekday: 'short' });
             html += `<div class="row">
-                <div style="font-weight:700;">${d}/${month}</div>
+                <div style="font-weight:700; color:#1e3a8a">${d}/${month}</div>
                 <div style="color:${dayName==='Sun'?'#ef4444':'#64748b'}; font-weight:700;">${dayName}</div>
-                <div><input type="text" inputmode="decimal" class="ot-input" data-id="day-${d}" oninput="calculateAll()"></div>
+                <div><input type="text" inputmode="decimal" class="ot-input" data-id="day-${d}" oninput="calculateAll(); autoLocalSave();"></div>
                 <div id="amt-${d}" style="font-weight:800; color:#16a34a">0.00</div>
             </div>`;
         }
         document.getElementById('calendarRows').innerHTML = html;
+    };
+
+    // Har entry par local save
+    window.autoLocalSave = function() {
+        const year = document.getElementById('yearSelect').value;
+        const month = document.getElementById('monthSelect').value;
+        const overtime = {};
+        document.querySelectorAll('.ot-input').forEach(input => { if(input.value) overtime[input.dataset.id] = input.value; });
+        
+        const data = {
+            settings: { baseSalary: document.getElementById('baseSalary').value, otRate: document.getElementById('otRate').value, pkrRate: document.getElementById('pkrRate').value },
+            overtime: overtime
+        };
+        localStorage.setItem(`ot_data_${year}_${month}`, JSON.stringify(data));
     };
 
     window.calculateAll = function() {
@@ -248,12 +297,14 @@
 
     window.toggleModal = function() {
         const m = document.getElementById('settingsModal');
-        m.style.display = (m.style.display === 'block') ? 'none' : 'block';
+        const isOpening = m.style.display !== 'block';
+        m.style.display = isOpening ? 'block' : 'none';
+        if(!isOpening) autoLocalSave(); // Band hote waqt settings save karein
     }
 
     window.addEventListener('DOMContentLoaded', () => {
         setupSelectors();
-        window.initCalendar();
+        window.loadUserData();
     });
 </script>
 </body>
