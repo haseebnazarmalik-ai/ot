@@ -18,78 +18,55 @@
             --primary-gradient: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
             --bg: #f8fafc; 
             --card: #ffffff; 
-            --accent: #2e7d32;
         }
 
-        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; background: var(--bg); padding-bottom: 20px; color: #334155; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); padding-bottom: 30px; color: #334155; }
         
-        /* Modernized Header */
         .header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 18px 20px; 
-            background: var(--primary-gradient); 
-            color: white; 
-            position: sticky; 
-            top: 0; 
-            z-index: 100; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            border-bottom-left-radius: 15px;
-            border-bottom-right-radius: 15px;
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 18px 20px; background: var(--primary-gradient); color: white; 
+            position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-bottom-left-radius: 15px; border-bottom-right-radius: 15px;
         }
 
-        .header-title { 
-            font-size: 1.3em; 
-            font-weight: 700; 
-            letter-spacing: 0.5px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
+        .header-title { font-size: 1.2em; font-weight: 700; letter-spacing: 0.5px; }
 
         .settings-btn { 
-            font-size: 26px; 
-            cursor: pointer; 
-            background: rgba(255,255,255,0.2); 
-            border: none; 
-            color: white; 
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s ease;
+            font-size: 24px; cursor: pointer; background: rgba(255,255,255,0.2); 
+            border: none; color: white; width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
         }
 
-        .settings-btn:active { transform: rotate(45deg) scale(0.9); }
-
         .selector-container { display: flex; gap: 12px; padding: 15px; background: #fff; margin: 10px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-        select { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 1em; font-weight: 600; background-color: #f1f5f9; color: #1e293b; outline: none; }
+        select { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 1em; font-weight: 600; background-color: #f1f5f9; }
 
         .app-container { padding: 5px 15px; max-width: 600px; margin: auto; }
 
-        .summary-section { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .card { background: var(--card); padding: 15px; border-radius: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; border: 1px solid #f1f5f9; }
-        .card div { font-size: 0.85em; color: #64748b; font-weight: 600; text-transform: uppercase; }
-        .card span { display: block; font-size: 1.4em; font-weight: 800; color: #1e3a8a; margin-top: 5px; }
-        .full-card { grid-column: span 2; background: #eff6ff; border: 1px solid #bfdbfe; }
-        .full-card span { color: #2563eb; }
+        /* Top Summary (Small) */
+        .top-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .mini-card { background: var(--card); padding: 10px; border-radius: 12px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .mini-card div { font-size: 0.75em; color: #64748b; font-weight: bold; }
+        .mini-card span { font-size: 1.1em; font-weight: 800; color: #1e3a8a; }
 
+        /* List Styling */
         .list-container { background: var(--card); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; }
-        .list-header { display: grid; grid-template-columns: 2.2fr 1.3fr 1.5fr 2fr; background: #f8fafc; padding: 15px 5px; font-weight: 700; text-align: center; border-bottom: 2px solid #e2e8f0; font-size: 0.9em; color: #475569; }
+        .list-header { display: grid; grid-template-columns: 2.2fr 1.3fr 1.5fr 2fr; background: #f8fafc; padding: 15px 5px; font-weight: 700; text-align: center; border-bottom: 2px solid #e2e8f0; font-size: 0.85em; }
         .row { display: grid; grid-template-columns: 2.2fr 1.3fr 1.5fr 2fr; padding: 12px 5px; border-bottom: 1px solid #f1f5f9; align-items: center; text-align: center; }
-        
-        .row input { width: 55px; padding: 10px 2px; border: 2px solid #e2e8f0; border-radius: 8px; text-align: center; font-size: 1.1em; font-weight: 700; color: #1e293b; transition: all 0.2s; }
-        .row input:focus { border-color: #3b82f6; outline: none; background: #f0f9ff; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
-        
-        .amt-col { font-weight: 700; color: #16a34a; font-size: 1em; }
+        .row input { width: 50px; padding: 8px 2px; border: 2px solid #e2e8f0; border-radius: 8px; text-align: center; font-size: 1em; font-weight: 700; }
+        .amt-col { font-weight: 700; color: #16a34a; }
+
+        /* Bottom Final Summary Section */
+        .final-summary { margin-top: 20px; background: #f0f9ff; border: 2px solid #bfdbfe; border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1); }
+        .final-label { font-size: 0.9em; color: #1e40af; font-weight: 700; text-transform: uppercase; margin-bottom: 10px; }
+        .final-val-sar { font-size: 1.3em; font-weight: 800; color: #1e3a8a; margin-bottom: 5px; }
+        .final-val-pkr { font-size: 1.8em; font-weight: 900; color: #2563eb; }
+        .final-val-pkr small { font-size: 0.5em; vertical-align: middle; margin-right: 5px; }
 
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
-        .modal-content { background: white; margin: 15% auto; padding: 25px; border-radius: 20px; width: 85%; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
-        .modal-content h3 { margin-top: 0; color: #1e293b; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+        .modal-content { background: white; margin: 15% auto; padding: 25px; border-radius: 20px; width: 85%; max-width: 400px; }
         
-        button { width: 100%; padding: 14px; background: var(--primary-gradient); color: white; border: none; border-radius: 12px; font-size: 1.1em; font-weight: 700; cursor: pointer; margin-top: 15px; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); }
-        .save-all-btn { background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); margin-top: 25px; position: sticky; bottom: 15px; z-index: 90; box-shadow: 0 10px 15px -3px rgba(22, 163, 74, 0.3); }
+        button { width: 100%; padding: 14px; background: var(--primary-gradient); color: white; border: none; border-radius: 12px; font-size: 1.1em; font-weight: 700; cursor: pointer; margin-top: 15px; }
+        .save-all-btn { background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); margin-top: 25px; box-shadow: 0 10px 15px -3px rgba(22, 163, 74, 0.3); }
     </style>
 </head>
 <body>
@@ -105,14 +82,19 @@
 </div>
 
 <div class="app-container">
-    <div class="summary-section">
-        <div class="card"><div>OT Hours</div><span id="dispTotalHours">0</span></div>
-        <div class="card"><div>OT (SAR)</div><span id="dispTotalOT_SAR">0.00</span></div>
-        <div class="full-card card"><div>Grand Total (Salary + OT) in PKR</div><span id="dispGrandTotal_PKR">0.00</span></div>
+    <div class="top-summary">
+        <div class="mini-card"><div>OT HOURS</div><span id="dispTotalHoursTop">0</span></div>
+        <div class="mini-card"><div>OT SAR</div><span id="dispTotalOT_SARTop">0.00</span></div>
     </div>
-    
+
     <div class="list-container">
         <div id="calendarRows"></div>
+    </div>
+
+    <div class="final-summary">
+        <div class="final-label">Monthly Grand Total</div>
+        <div class="final-val-sar" id="dispGrandTotal_SAR_Bottom">0.00 SAR</div>
+        <div class="final-val-pkr"><small>PKR</small><span id="dispGrandTotal_PKR_Bottom">0.00</span></div>
     </div>
     
     <button class="save-all-btn" id="finalSaveBtn">SAVE TO CLOUD</button>
@@ -121,9 +103,9 @@
 <div id="settingsModal" class="modal">
     <div class="modal-content">
         <h3>App Settings</h3>
-        <label style="font-size:0.9em; font-weight:600;">Salary (SAR)</label><input type="number" id="baseSalary" value="3000" oninput="calculateAll()" style="width:90%; padding:10px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
-        <label style="font-size:0.9em; font-weight:600;">OT Rate/Hr</label><input type="number" id="otRate" value="17.72" step="0.01" oninput="calculateAll()" style="width:90%; padding:10px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
-        <label style="font-size:0.9em; font-weight:600;">Exchange Rate (PKR)</label><input type="number" id="pkrRate" value="75.50" step="0.1" oninput="calculateAll()" style="width:90%; padding:10px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
+        <label>Salary (SAR)</label><input type="number" id="baseSalary" value="3000" oninput="calculateAll()" style="width:90%; padding:10px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
+        <label>OT Rate/Hr</label><input type="number" id="otRate" value="17.72" step="0.01" oninput="calculateAll()" style="width:90%; padding:10px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
+        <label>PKR Rate</label><input type="number" id="pkrRate" value="75.50" step="0.1" oninput="calculateAll()" style="width:90%; padding:10px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd;">
         <button onclick="toggleModal()">DONE</button>
     </div>
 </div>
@@ -160,7 +142,7 @@
 
     try {
         await set(ref(db, `data/${year}/${month}`), payload);
-        alert("Data Sync Successful! ✅");
+        alert("Synced Successfully! ✅");
     } catch (e) { alert("Sync Error!"); }
   };
 
@@ -248,9 +230,18 @@
             const amtDiv = document.getElementById(`amt-${i+1}`);
             if(amtDiv) amtDiv.innerText = (hrs * rate).toFixed(2);
         });
-        document.getElementById('dispTotalHours').innerText = totalH;
-        document.getElementById('dispTotalOT_SAR').innerText = (totalH * rate).toFixed(2);
-        document.getElementById('dispGrandTotal_PKR').innerText = ((salary + (totalH * rate)) * pkr).toLocaleString(undefined, {minimumFractionDigits: 2});
+
+        const totalOT_SAR = totalH * rate;
+        const grandTotalSAR = salary + totalOT_SAR;
+        const grandTotalPKR = grandTotalSAR * pkr;
+
+        // Update Top
+        document.getElementById('dispTotalHoursTop').innerText = totalH;
+        document.getElementById('dispTotalOT_SARTop').innerText = totalOT_SAR.toFixed(2);
+        
+        // Update Bottom (Grand Totals)
+        document.getElementById('dispGrandTotal_SAR_Bottom').innerText = grandTotalSAR.toFixed(2) + " SAR";
+        document.getElementById('dispGrandTotal_PKR_Bottom').innerText = grandTotalPKR.toLocaleString(undefined, {minimumFractionDigits: 2});
     }
 </script>
 </body>
