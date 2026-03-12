@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>OT Tracker Pro v3.4</title>
+    <title>OT Tracker Pro v3.5</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1976d2">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -54,7 +54,6 @@
         #toast.show { visibility: visible; animation: fadeinout 2.5s; }
         @keyframes fadeinout { 0%, 100% { opacity: 0; bottom: 80px; } 20%, 80% { opacity: 1; bottom: 100px; } }
 
-        /* Analytics Specific */
         .chart-card { background:#fff; border-radius:24px; padding:20px; margin-bottom:20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
         .chart-controls { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px; }
         .nav-btn { background: #f1f5f9; border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; font-weight: 900; color: var(--primary); }
@@ -116,6 +115,11 @@
                 <button class="nav-btn" onclick="changeTrendMonth(1)">❯</button>
             </div>
             <canvas id="dailyTrendChart"></canvas>
+        </div>
+
+        <div class="selector-container" style="margin-bottom: 20px;">
+            <label style="font-weight:800; color:var(--primary); padding-top:10px;">Yearly Summary:</label>
+            <select id="yearSelectAnalytics" onchange="updateCharts()"></select>
         </div>
 
         <div class="chart-card">
@@ -287,7 +291,7 @@
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         document.getElementById('trendMonthLabel').innerText = `${months[trendMonth-1]} ${trendYear}`;
         
-        // 1. Daily Zigzag Chart
+        // 1. Daily Zigzag Chart (v3.4)
         const trendDataRaw = JSON.parse(localStorage.getItem(`ot_data_${trendYear}_${trendMonth}`)) || {};
         const daysInMonth = new Date(trendYear, trendMonth, 0).getDate();
         const dailyLabels = Array.from({length: daysInMonth}, (_, i) => i + 1);
@@ -300,13 +304,14 @@
             options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
         });
 
-        // 2. Bar Chart (Month-wise)
-        const currentYear = new Date().getFullYear();
+        // 2. Bar Chart & Pie Chart Year Connection (v3.5)
+        const selectedYear = document.getElementById('yearSelectAnalytics').value;
         const otMonthData = months.map((_, i) => {
-            const data = JSON.parse(localStorage.getItem(`ot_data_${currentYear}_${i+1}`)) || {};
+            const data = JSON.parse(localStorage.getItem(`ot_data_${selectedYear}_${i+1}`)) || {};
             let total = 0; if(data.overtime) Object.values(data.overtime).forEach(v => total += parseFloat(v) || 0);
             return total;
         });
+        
         if(barChart) barChart.destroy();
         barChart = new Chart(document.getElementById('otBarChart'), {
             type: 'bar',
@@ -315,10 +320,10 @@
 
         // 3. Pie Chart (Actual Salary Percentage)
         const salaryMonthData = months.map((_, i) => {
-            const data = JSON.parse(localStorage.getItem(`ot_data_${currentYear}_${i+1}`)) || {};
+            const data = JSON.parse(localStorage.getItem(`ot_data_${selectedYear}_${i+1}`)) || {};
             return parseFloat(data.settings?.actualSalary) || 0;
         });
-        const totalYearlySalary = salaryMonthData.reduce((a, b) => a + b, 0) || 1; // avoid /0
+        const totalYearlySalary = salaryMonthData.reduce((a, b) => a + b, 0) || 1;
 
         if(pieChart) pieChart.destroy();
         pieChart = new Chart(document.getElementById('incomePieChart'), {
@@ -393,10 +398,14 @@
     }
 
     window.onload = () => {
-        const m = document.getElementById('monthSelect'), y = document.getElementById('yearSelect'), now = new Date();
+        const m = document.getElementById('monthSelect'), y = document.getElementById('yearSelect'), ya = document.getElementById('yearSelectAnalytics'), now = new Date();
         const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
         months.forEach((name, i) => { let opt = new Option(name, i + 1); if(i === now.getMonth()) opt.selected = true; m.add(opt); });
-        for(let i=0; i<5; i++) { const yr = now.getFullYear()-i; y.add(new Option(yr, yr)); }
+        for(let i=0; i<5; i++) { 
+            const yr = now.getFullYear()-i; 
+            y.add(new Option(yr, yr)); 
+            ya.add(new Option(yr, yr));
+        }
         window.loadUserData();
     };
 </script>
