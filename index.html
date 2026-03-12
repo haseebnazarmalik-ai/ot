@@ -11,18 +11,22 @@
         :root { --primary: #1e3a8a; --gradient: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); --bg: #f8fafc; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #334155; -webkit-tap-highlight-color: transparent; }
 
+        /* Tabs System */
         .tabs-container { display: flex; background: #fff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 75px; z-index: 99; }
         .tab { flex: 1; padding: 15px; text-align: center; font-weight: 800; font-size: 14px; color: #64748b; cursor: pointer; transition: 0.3s; border-bottom: 3px solid transparent; }
         .tab.active { color: var(--primary); border-bottom-color: var(--primary); background: #f0f7ff; }
 
+        /* Login Screen */
         #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--gradient); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; color: white; }
         .login-box { background: rgba(255,255,255,0.15); padding: 40px 25px; border-radius: 28px; backdrop-filter: blur(15px); text-align: center; width: 85%; max-width: 350px; border: 1px solid rgba(255,255,255,0.2); }
         .google-btn { width: 100%; padding: 15px; margin-top: 25px; border-radius: 14px; border: none; background: #fff; color: #444; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 16px; }
 
+        /* Header */
         #mainApp { display: none; padding-bottom: 120px; }
         .header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; background: var(--gradient); color: white; position: sticky; top: 0; z-index: 100; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .profile-dp { width: 42px; height: 42px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.8); cursor: pointer; object-fit: cover; }
 
+        /* Dashboard Views */
         .view-content { display: none; padding: 10px 15px; max-width: 600px; margin: auto; }
         .view-content.active { display: block; }
 
@@ -40,6 +44,7 @@
 
         .save-all-btn { position: fixed; bottom: 30px; right: 20px; padding: 18px 30px; background: #16a34a; color: white; border: none; border-radius: 50px; font-weight: 800; z-index: 999; box-shadow: 0 10px 25px rgba(22,163,74,0.4); cursor: pointer; }
 
+        /* Modal Styles */
         .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); }
         .modal-content { background: white; margin: 12% auto; padding: 30px 25px; border-radius: 32px; width: 85%; max-width: 350px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
         .setting-field { margin-bottom: 15px; }
@@ -134,49 +139,6 @@
     </div>
 </div>
 
-    <script>
-    // ... (Baaki saare functions: switchTab, calculateAll, updateCharts wahi hain) ...
-
-    // Naya function jo current day ko focus karega
-    window.scrollToCurrentDay = function() {
-        setTimeout(() => {
-            const todayRow = document.querySelector('.current-day-highlight');
-            if (todayRow) {
-                todayRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        }, 500); // 500ms ka delay taake data load hone ke baad scroll ho
-    };
-
-    window.loadUserData = () => {
-        const user = auth.currentUser;
-        const year = document.getElementById('yearSelect').value;
-        const month = document.getElementById('monthSelect').value;
-        
-        window.initCalendar();
-        
-        // Calendar banne ke baad scroll call karein
-        window.scrollToCurrentDay();
-
-        const localData = localStorage.getItem(`ot_data_${year}_${month}`);
-        if(localData) applyData(JSON.parse(localData));
-        
-        if (user) {
-            onValue(ref(db, `users/${user.uid}/${year}/${month}`), (snapshot) => {
-                const val = snapshot.val();
-                if (val) { 
-                    applyData(val); 
-                    localStorage.setItem(`ot_data_${year}_${month}`, JSON.stringify(val));
-                    // Data apply hone ke baad dubara check karein
-                    window.scrollToCurrentDay();
-                }
-            }, { onlyOnce: true });
-        }
-    };
-
-    // Baaki poora code (Firebase config, Modal, Analytics) same rahega...
-    // ...
-</script>
-
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
   import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
@@ -231,12 +193,17 @@
       const year = document.getElementById('yearSelect').value;
       const month = document.getElementById('monthSelect').value;
       window.initCalendar();
+      window.scrollToCurrentDay(); // Auto scroll on open
       const localData = localStorage.getItem(`ot_data_${year}_${month}`);
       if(localData) applyData(JSON.parse(localData));
       if (user) {
           onValue(ref(db, `users/${user.uid}/${year}/${month}`), (snapshot) => {
               const val = snapshot.val();
-              if (val) { applyData(val); localStorage.setItem(`ot_data_${year}_${month}`, JSON.stringify(val)); }
+              if (val) { 
+                  applyData(val); 
+                  localStorage.setItem(`ot_data_${year}_${month}`, JSON.stringify(val));
+                  window.scrollToCurrentDay(); // Re-scroll after data apply
+              }
           }, { onlyOnce: true });
       }
   };
@@ -255,6 +222,16 @@
         document.getElementById(tabName + 'View').classList.add('active');
         if(tabName === 'analytics') updateCharts();
     }
+
+    // Auto-Scroll Logic
+    window.scrollToCurrentDay = function() {
+        setTimeout(() => {
+            const todayRow = document.querySelector('.current-day-highlight');
+            if (todayRow) {
+                todayRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 600);
+    };
 
     window.initCalendar = function() {
         const month = parseInt(document.getElementById('monthSelect').value);
@@ -296,8 +273,6 @@
         document.getElementById('totalOT').innerText = otSAR.toFixed(2);
         document.getElementById('grandSAR').innerText = (salary + otSAR).toFixed(2) + " SAR";
         document.getElementById('grandPKR').innerText = ((salary + otSAR) * pkr).toLocaleString(undefined, {minimumFractionDigits: 2});
-        
-        // Dashboard actual show only input
         document.getElementById('displayActual').innerText = actualFixed.toFixed(2) + " SAR";
     };
 
@@ -381,7 +356,7 @@
         window.calculateAll();
         window.autoLocalSave();
         window.saveUserData();
-        document.getElementById('actualSalaryInput').value = "";
+        document.getElementById('actualSalaryInput').value = ""; // Reset after save
         window.closeSettings();
         showToast("Saved & Synced ✅");
     };
