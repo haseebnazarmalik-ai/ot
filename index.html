@@ -134,6 +134,49 @@
     </div>
 </div>
 
+    <script>
+    // ... (Baaki saare functions: switchTab, calculateAll, updateCharts wahi hain) ...
+
+    // Naya function jo current day ko focus karega
+    window.scrollToCurrentDay = function() {
+        setTimeout(() => {
+            const todayRow = document.querySelector('.current-day-highlight');
+            if (todayRow) {
+                todayRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 500); // 500ms ka delay taake data load hone ke baad scroll ho
+    };
+
+    window.loadUserData = () => {
+        const user = auth.currentUser;
+        const year = document.getElementById('yearSelect').value;
+        const month = document.getElementById('monthSelect').value;
+        
+        window.initCalendar();
+        
+        // Calendar banne ke baad scroll call karein
+        window.scrollToCurrentDay();
+
+        const localData = localStorage.getItem(`ot_data_${year}_${month}`);
+        if(localData) applyData(JSON.parse(localData));
+        
+        if (user) {
+            onValue(ref(db, `users/${user.uid}/${year}/${month}`), (snapshot) => {
+                const val = snapshot.val();
+                if (val) { 
+                    applyData(val); 
+                    localStorage.setItem(`ot_data_${year}_${month}`, JSON.stringify(val));
+                    // Data apply hone ke baad dubara check karein
+                    window.scrollToCurrentDay();
+                }
+            }, { onlyOnce: true });
+        }
+    };
+
+    // Baaki poora code (Firebase config, Modal, Analytics) same rahega...
+    // ...
+</script>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
   import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
