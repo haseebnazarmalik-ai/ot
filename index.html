@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>OT Tracker Pro</title>
+    <title>OT Tracker Pro v3.3</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1976d2">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -11,22 +11,18 @@
         :root { --primary: #1e3a8a; --gradient: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); --bg: #f8fafc; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #334155; -webkit-tap-highlight-color: transparent; }
 
-        /* Tabs System */
         .tabs-container { display: flex; background: #fff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 75px; z-index: 99; }
         .tab { flex: 1; padding: 15px; text-align: center; font-weight: 800; font-size: 14px; color: #64748b; cursor: pointer; transition: 0.3s; border-bottom: 3px solid transparent; }
         .tab.active { color: var(--primary); border-bottom-color: var(--primary); background: #f0f7ff; }
 
-        /* Login Screen */
         #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--gradient); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; color: white; }
         .login-box { background: rgba(255,255,255,0.15); padding: 40px 25px; border-radius: 28px; backdrop-filter: blur(15px); text-align: center; width: 85%; max-width: 350px; border: 1px solid rgba(255,255,255,0.2); }
         .google-btn { width: 100%; padding: 15px; margin-top: 25px; border-radius: 14px; border: none; background: #fff; color: #444; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 16px; }
 
-        /* Header */
         #mainApp { display: none; padding-bottom: 120px; }
         .header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; background: var(--gradient); color: white; position: sticky; top: 0; z-index: 100; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .profile-dp { width: 42px; height: 42px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.8); cursor: pointer; object-fit: cover; }
 
-        /* Dashboard Views */
         .view-content { display: none; padding: 10px 15px; max-width: 600px; margin: auto; }
         .view-content.active { display: block; }
 
@@ -44,7 +40,6 @@
 
         .save-all-btn { position: fixed; bottom: 30px; right: 20px; padding: 18px 30px; background: #16a34a; color: white; border: none; border-radius: 50px; font-weight: 800; z-index: 999; box-shadow: 0 10px 25px rgba(22,163,74,0.4); cursor: pointer; }
 
-        /* Modal Styles */
         .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); }
         .modal-content { background: white; margin: 12% auto; padding: 30px 25px; border-radius: 32px; width: 85%; max-width: 350px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
         .setting-field { margin-bottom: 15px; }
@@ -186,6 +181,9 @@
       };
       await set(ref(db, `users/${user.uid}/${year}/${month}`), data);
       showToast("Cloud Synced ✅");
+      
+      // Feature 3.3: Sync ke baad smooth scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   window.loadUserData = () => {
@@ -193,7 +191,7 @@
       const year = document.getElementById('yearSelect').value;
       const month = document.getElementById('monthSelect').value;
       window.initCalendar();
-      window.scrollToCurrentDay(); // Auto scroll on open
+      window.scrollToCurrentDay(); 
       const localData = localStorage.getItem(`ot_data_${year}_${month}`);
       if(localData) applyData(JSON.parse(localData));
       if (user) {
@@ -202,7 +200,7 @@
               if (val) { 
                   applyData(val); 
                   localStorage.setItem(`ot_data_${year}_${month}`, JSON.stringify(val));
-                  window.scrollToCurrentDay(); // Re-scroll after data apply
+                  window.scrollToCurrentDay(); 
               }
           }, { onlyOnce: true });
       }
@@ -223,7 +221,6 @@
         if(tabName === 'analytics') updateCharts();
     }
 
-    // Auto-Scroll Logic
     window.scrollToCurrentDay = function() {
         setTimeout(() => {
             const todayRow = document.querySelector('.current-day-highlight');
@@ -356,7 +353,7 @@
         window.calculateAll();
         window.autoLocalSave();
         window.saveUserData();
-        document.getElementById('actualSalaryInput').value = ""; // Reset after save
+        document.getElementById('actualSalaryInput').value = ""; 
         window.closeSettings();
         showToast("Saved & Synced ✅");
     };
