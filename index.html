@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>OT Tracker Pro v3.6</title>
+    <title>OT Tracker Pro v3.7</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1976d2">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -11,6 +11,10 @@
         :root { --primary: #1e3a8a; --gradient: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); --bg: #f8fafc; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #334155; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
 
+        /* Splash Screen Style */
+        #splashScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--gradient); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20000; transition: opacity 0.5s ease; }
+        .splash-logo { width: 80px; height: 80px; background: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin-bottom: 20px; }
+        
         .tabs-container { display: flex; background: #fff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 75px; z-index: 99; }
         .tab { flex: 1; padding: 15px; text-align: center; font-weight: 800; font-size: 14px; color: #64748b; cursor: pointer; transition: 0.3s; border-bottom: 3px solid transparent; }
         .tab.active { color: var(--primary); border-bottom-color: var(--primary); background: #f0f7ff; }
@@ -62,6 +66,12 @@
 </head>
 <body id="appBody">
 
+<div id="splashScreen">
+    <div class="splash-logo"><span style="font-size:40px;">⏳</span></div>
+    <div style="color:white; font-weight:800; font-size:22px; letter-spacing:1px;">OT TRACKER PRO</div>
+    <div style="color:rgba(255,255,255,0.7); margin-top:10px; font-size:12px;">v3.7 • Loading Local Data...</div>
+</div>
+
 <div id="toast">Saved ✅</div>
 
 <div id="loginScreen">
@@ -77,7 +87,7 @@
     <div class="header">
         <div>
             <div style="font-weight:800; font-size:18px;">DASHBOARD</div>
-            <div id="userName" style="font-size:11px; opacity:0.9;">User</div>
+            <div id="userName" style="font-size:11px; opacity:0.9;">Offline Mode</div>
         </div>
         <img id="userDP" class="profile-dp" src="https://www.w3schools.com/howto/img_avatar.png" onclick="window.openSettings()">
     </div>
@@ -117,17 +127,14 @@
             </div>
             <canvas id="dailyTrendChart"></canvas>
         </div>
-
         <div class="selector-container" style="margin-bottom: 20px;">
             <label style="font-weight:800; color:var(--primary); padding-top:10px;">Yearly Summary:</label>
             <select id="yearSelectAnalytics" onchange="updateCharts()"></select>
         </div>
-
         <div class="chart-card">
             <h4 style="margin:0 0 15px 0; color:var(--primary);">Month-wise OT Trend</h4>
             <canvas id="otBarChart"></canvas>
         </div>
-
         <div class="chart-card" style="text-align: center;">
             <h4 style="margin:0 0 5px 0; color:var(--primary);">Income Breakdown (%)</h4>
             <div id="pieChartInfo" style="font-size: 13px; font-weight: 800; color: #2563eb; margin-bottom: 10px; height: 20px;">Based on Actual Salary</div>
@@ -168,21 +175,37 @@
   const db = getDatabase(app);
   const auth = getAuth(app);
 
+  // Splash Screen Removal after 1 second (Strictly)
+  window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+          const ss = document.getElementById('splashScreen');
+          ss.style.opacity = '0';
+          setTimeout(() => ss.style.display = 'none', 500);
+      }, 1000);
+  });
+
   onAuthStateChanged(auth, (user) => {
       if (user) {
           if(user.photoURL) document.getElementById('userDP').src = user.photoURL;
           document.getElementById('loginScreen').style.display = 'none';
           document.getElementById('mainApp').style.display = 'block';
           document.getElementById('userName').innerText = user.displayName || user.email;
-          window.loadUserData();
+          window.loadUserData(); // Background sync start
       } else {
-          document.getElementById('loginScreen').style.display = 'flex';
-          document.getElementById('mainApp').style.display = 'none';
+          // If no user but offline data exists, show app anyway (Local Only)
+          const hasLocal = localStorage.getItem('last_user_id');
+          if(hasLocal) {
+              document.getElementById('loginScreen').style.display = 'none';
+              document.getElementById('mainApp').style.display = 'block';
+              window.loadUserData();
+          } else {
+              document.getElementById('loginScreen').style.display = 'flex';
+          }
       }
   });
 
   window.saveUserData = async () => {
-      const user = auth.currentUser; if (!user) return;
+      const user = auth.currentUser;
       const year = document.getElementById('yearSelect').value;
       const month = document.getElementById('monthSelect').value;
       const overtime = {};
@@ -194,21 +217,42 @@
           }, 
           overtime 
       };
-      await set(ref(db, `users/${user.uid}/${year}/${month}`), data);
-      showToast("Cloud Synced ✅");
+
+      // Save Local first (Immediate)
+      localStorage.setItem(`ot_data_${year}_${month}`, JSON.stringify(data));
+      
+      // Save Cloud (If internet available)
+      if (user) {
+          localStorage.setItem('last_user_id', user.uid);
+          try {
+              await set(ref(db, `users/${user.uid}/${year}/${month}`), data);
+              showToast("Cloud Synced ✅");
+          } catch(e) {
+              showToast("Saved Locally (Offline) 💾");
+          }
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   window.loadUserData = () => {
       const year = document.getElementById('yearSelect').value, month = document.getElementById('monthSelect').value;
       window.initCalendar();
-      window.scrollToCurrentDay(); 
+      
+      // Step 1: Immediate Load from LocalStorage
       const localData = localStorage.getItem(`ot_data_${year}_${month}`);
-      if(localData) applyData(JSON.parse(localData));
+      if(localData) {
+          applyData(JSON.parse(localData));
+          window.scrollToCurrentDay();
+      }
+
+      // Step 2: Background Sync with Firebase
       if (auth.currentUser) {
           onValue(ref(db, `users/${auth.currentUser.uid}/${year}/${month}`), (snapshot) => {
               const val = snapshot.val();
-              if (val) { applyData(val); localStorage.setItem(`ot_data_${year}_${month}`, JSON.stringify(val)); window.scrollToCurrentDay(); }
+              if (val) { 
+                  applyData(val); 
+                  localStorage.setItem(`ot_data_${year}_${month}`, JSON.stringify(val)); 
+              }
           }, { onlyOnce: true });
       }
   };
@@ -218,12 +262,11 @@
 </script>
 
 <script>
+    // All v3.6 functions (Swipe, Scroll, Charts, Calculate) remain EXACTLY the same
     let barChart, pieChart, lineChart;
     let trendMonth = new Date().getMonth() + 1;
     let trendYear = new Date().getFullYear();
     let currentTab = 'dashboard';
-
-    // Swipe Support (v3.6)
     let touchstartX = 0;
     let touchendX = 0;
 
@@ -243,21 +286,15 @@
         currentTab = tabName;
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
-        
         document.getElementById('tab-' + tabName).classList.add('active');
         document.getElementById(tabName + 'View').classList.add('active');
-
-        if(tabName === 'analytics') {
-            updateCharts(); // Refresh animations on every swipe to analytics
-        } else {
-            window.scrollToCurrentDay(); // Auto-center when coming back to dashboard
-        }
+        if(tabName === 'analytics') updateCharts(); else window.scrollToCurrentDay();
     }
 
     window.scrollToCurrentDay = function() {
         setTimeout(() => {
             const todayRow = document.querySelector('.current-day-highlight');
-            if (todayRow) { todayRow.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+            if (todayRow) todayRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 300);
     };
 
@@ -299,7 +336,6 @@
     window.updateCharts = function() {
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         document.getElementById('trendMonthLabel').innerText = `${months[trendMonth-1]} ${trendYear}`;
-        
         const trendDataRaw = JSON.parse(localStorage.getItem(`ot_data_${trendYear}_${trendMonth}`)) || {};
         const daysInMonth = new Date(trendYear, trendMonth, 0).getDate();
         const dailyLabels = Array.from({length: daysInMonth}, (_, i) => i + 1);
@@ -364,7 +400,7 @@
 
     window.openSettings = () => { document.getElementById('settingsModal').style.display = 'block'; };
     window.closeSettings = () => { document.getElementById('settingsModal').style.display = 'none'; };
-    window.saveAndCloseSettings = () => { window.calculateAll(); window.autoLocalSave(); window.saveUserData(); document.getElementById('actualSalaryInput').value = ""; window.closeSettings(); showToast("Saved & Synced ✅"); };
+    window.saveAndCloseSettings = () => { window.calculateAll(); window.autoLocalSave(); window.saveUserData(); document.getElementById('actualSalaryInput').value = ""; window.closeSettings(); };
 
     function showToast(msg) { const t = document.getElementById("toast"); t.innerText = msg; t.className = "show"; setTimeout(() => { t.className = ""; }, 2500); }
 
@@ -373,7 +409,6 @@
         const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
         months.forEach((name, i) => { let opt = new Option(name, i + 1); if(i === now.getMonth()) opt.selected = true; m.add(opt); });
         for(let i=0; i<5; i++) { const yr = now.getFullYear()-i; y.add(new Option(yr, yr)); ya.add(new Option(yr, yr)); }
-        window.loadUserData();
     };
 </script>
 </body>
