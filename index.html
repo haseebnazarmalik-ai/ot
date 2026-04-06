@@ -33,8 +33,7 @@
         .selector-container { display: flex; gap: 10px; margin: 15px 0; }
         select { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; font-weight: 600; background: #fff; outline: none; }
 
-        .row { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.5fr; padding: 16px 5px; border-bottom: 1px solid #f1f5f9; align-items: center; text-align: center; font-size: 14px; cursor: pointer; transition: background 0.2s; }
-        .row:active { background: #f1f5f9; }
+        .row { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.5fr; padding: 16px 5px; border-bottom: 1px solid #f1f5f9; align-items: center; text-align: center; font-size: 14px; cursor: pointer; }
         .current-day-highlight { background-color: #dcfce7 !important; border-left: 5px solid #22c55e; }
 
         .top-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
@@ -42,20 +41,21 @@
         .final-summary { margin-top: 20px; background: #eff6ff; border-radius: 24px; padding: 25px; text-align: center; border: 1px solid #dbeafe; }
         .actual-salary-row { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #bfdbfe; color: #1e3a8a; font-weight: 900; font-size: 18px; }
 
-        /* Dialog/Modal Styling */
         .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); }
         .modal-content { background: white; margin: 15% auto; padding: 25px; border-radius: 28px; width: 85%; max-width: 350px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
         .entry-field { margin-bottom: 18px; }
         .entry-field label { font-size: 13px; font-weight: 800; color: #64748b; margin-bottom: 6px; display: block; }
         .entry-field input, .entry-field textarea { width: 100%; padding: 14px; border-radius: 14px; border: 1px solid #e2e8f0; font-weight: 700; box-sizing: border-box; font-family: inherit; }
         .entry-field textarea { height: 80px; resize: none; }
-        .btn-update { width: 100%; padding: 16px; background: var(--gradient); color: white; border: none; border-radius: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(30,58,138,0.2); }
+        .btn-update { width: 100%; padding: 16px; background: var(--gradient); color: white; border: none; border-radius: 16px; font-weight: 800; cursor: pointer; }
 
         #toast { visibility: hidden; min-width: 200px; background-color: #333; color: #fff; text-align: center; border-radius: 50px; padding: 12px 24px; position: fixed; z-index: 2000; bottom: 50px; left: 50%; transform: translateX(-50%); font-weight: 600; }
         #toast.show { visibility: visible; animation: fadeinout 2.5s; }
         @keyframes fadeinout { 0%, 100% { opacity: 0; } 20%, 80% { opacity: 1; } }
 
         .chart-card { background:#fff; border-radius:24px; padding:20px; margin-bottom:20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .chart-controls { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px; }
+        .nav-btn { background: #f1f5f9; border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; color: var(--primary); font-weight: 900; }
     </style>
 </head>
 <body>
@@ -63,7 +63,7 @@
 <div id="splashScreen">
     <div class="splash-logo"><span style="font-size:40px;">⏳</span></div>
     <div style="color:white; font-weight:800; font-size:22px;">OT TRACKER PRO</div>
-    <div style="color:rgba(255,255,255,0.7); margin-top:10px; font-size:12px;">v3.7 • Offline Ready</div>
+    <div style="color:rgba(255,255,255,0.7); margin-top:10px; font-size:12px;">v3.7 • Active</div>
 </div>
 
 <div id="toast">Saved ✅</div>
@@ -101,7 +101,6 @@
             <div class="mini-card"><div>OT SAR</div><span id="totalOT" style="font-weight:800; color:#16a34a;">0.00</span></div>
         </div>
         <div style="background: #fff; border-radius: 22px; overflow: hidden; box-shadow: 0 4px 25px rgba(0,0,0,0.05);" id="calendarRows"></div>
-        
         <div class="final-summary">
             <div style="font-weight: 800; color: #1e40af; font-size: 11px;">MONTHLY GRAND TOTAL</div>
             <div style="font-size: 22px; font-weight: 800;" id="grandSAR">0.00 SAR</div>
@@ -113,11 +112,20 @@
     <div id="analyticsView" class="view-content">
         <div class="chart-card">
             <h4 style="margin:0 0 10px 0; color:var(--primary); text-align:center;">Daily OT Trend</h4>
+            <div class="chart-controls">
+                <button class="nav-btn" onclick="changeTrendMonth(-1)">❮</button>
+                <span id="trendMonthLabel" style="font-weight:800; color:var(--primary); min-width:100px; text-align:center;">-</span>
+                <button class="nav-btn" onclick="changeTrendMonth(1)">❯</button>
+            </div>
             <canvas id="dailyTrendChart"></canvas>
         </div>
         <div class="chart-card">
             <h4 style="margin:0 0 15px 0; color:var(--primary);">Month-wise OT</h4>
             <canvas id="otBarChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h4 style="margin:0 0 5px 0; color:var(--primary); text-align:center;">Income Breakdown</h4>
+            <canvas id="incomePieChart"></canvas>
         </div>
     </div>
 </div>
@@ -125,14 +133,8 @@
 <div id="entryModal" class="modal">
     <div class="modal-content">
         <h3 id="modalDateTitle" style="margin-top:0; color:var(--primary);">Date Entry</h3>
-        <div class="entry-field">
-            <label>Hours</label>
-            <input type="number" id="entryHrs" step="0.5" placeholder="0.0">
-        </div>
-        <div class="entry-field">
-            <label>Work Details</label>
-            <textarea id="entryWork" placeholder="Work details..."></textarea>
-        </div>
+        <div class="entry-field"><label>Hours</label><input type="number" id="entryHrs" step="0.5" placeholder="0.0"></div>
+        <div class="entry-field"><label>Work Details</label><textarea id="entryWork" placeholder="Details..."></textarea></div>
         <button class="btn-update" id="btnCloudAction" onclick="window.saveEntry()">Save to Cloud</button>
         <button onclick="window.closeEntry()" style="width:100%; margin-top:10px; background:none; border:none; color:#64748b; font-weight:700; cursor:pointer;">Close</button>
     </div>
@@ -140,13 +142,13 @@
 
 <div id="settingsModal" class="modal">
     <div class="modal-content">
-        <h3 style="margin-top:0; color:var(--primary);">Settings</h3>
+        <h3 style="margin-top:0; color:var(--primary); text-align:center;">Settings</h3>
         <div class="entry-field"><label>Monthly Basic Salary</label><input type="number" id="baseSalary"></div>
         <div class="entry-field"><label>OT Rate (1 Hr)</label><input type="number" id="otRate" step="0.01"></div>
         <div class="entry-field"><label>PKR Rate</label><input type="number" id="pkrRate" step="0.1"></div>
         <div class="entry-field"><label>Actual Salary</label><input type="number" id="actualSalaryInput"></div>
-        <button class="btn-update" onclick="window.saveSettings()">Save Settings</button>
-        <button onclick="window.logout()" style="width:100%; margin-top:10px; background:none; border:none; color:#ef4444; font-weight:700; cursor:pointer;">Logout</button>
+        <button class="btn-update" onclick="window.saveSettings()">Save & Close</button>
+        <button onclick="window.logout()" style="width:100%; margin-top:20px; background:none; border:none; color:#ef4444; font-weight:700; cursor:pointer;">Logout</button>
     </div>
 </div>
 
@@ -163,8 +165,6 @@
   let activeDay = null;
   let currentData = { settings: {}, overtime: {}, workDetails: {} };
 
-  window.addEventListener('DOMContentLoaded', () => setTimeout(() => { document.getElementById('splashScreen').style.opacity = '0'; setTimeout(() => document.getElementById('splashScreen').style.display = 'none', 500); }, 1000));
-
   onAuthStateChanged(auth, (user) => {
       if (user) {
           document.getElementById('loginScreen').style.display = 'none';
@@ -180,139 +180,144 @@
   window.loadUserData = () => {
       const year = document.getElementById('yearSelect').value, month = document.getElementById('monthSelect').value;
       window.initCalendar();
-      const local = localStorage.getItem(`ot_v4_${year}_${month}`);
+      const local = localStorage.getItem(`ot_data_${year}_${month}`);
       if(local) { currentData = JSON.parse(local); applyToUI(); }
       
       if (auth.currentUser) {
           onValue(ref(db, `users/${auth.currentUser.uid}/${year}/${month}`), (snap) => {
               const val = snap.val();
-              if (val) { currentData = val; localStorage.setItem(`ot_v4_${year}_${month}`, JSON.stringify(val)); applyToUI(); }
+              if (val) { currentData = val; localStorage.setItem(`ot_data_${year}_${month}`, JSON.stringify(val)); applyToUI(); }
           }, { onlyOnce: true });
       }
-  };
-
-  window.openEntry = (day) => {
-      activeDay = day;
-      const hrs = currentData.overtime?.[`day-${day}`] || "";
-      const work = currentData.workDetails?.[`day-${day}`] || "";
-      document.getElementById('modalDateTitle').innerText = `Entry for ${day}/${document.getElementById('monthSelect').value}`;
-      document.getElementById('entryHrs').value = hrs;
-      document.getElementById('entryWork').value = work;
-      document.getElementById('btnCloudAction').innerText = hrs ? "Update to Cloud" : "Save to Cloud";
-      document.getElementById('entryModal').style.display = 'block';
   };
 
   window.saveEntry = async () => {
       const hrs = document.getElementById('entryHrs').value;
       const work = document.getElementById('entryWork').value;
       const year = document.getElementById('yearSelect').value, month = document.getElementById('monthSelect').value;
-      
       if(!currentData.overtime) currentData.overtime = {};
       if(!currentData.workDetails) currentData.workDetails = {};
-      
       currentData.overtime[`day-${activeDay}`] = hrs;
       currentData.workDetails[`day-${activeDay}`] = work;
-      
       applyToUI();
-      localStorage.setItem(`ot_v4_${year}_${month}`, JSON.stringify(currentData));
-      
-      if(auth.currentUser) {
-          await set(ref(db, `users/${auth.currentUser.uid}/${year}/${month}`), currentData);
-          showToast("Cloud Synced ✅");
-      }
+      localStorage.setItem(`ot_data_${year}_${month}`, JSON.stringify(currentData));
+      if(auth.currentUser) await set(ref(db, `users/${auth.currentUser.uid}/${year}/${month}`), currentData);
       window.closeEntry();
+      showToast("Cloud Synced ✅");
   };
 
   window.saveSettings = async () => {
-      currentData.settings = {
-          baseSalary: document.getElementById('baseSalary').value,
-          otRate: document.getElementById('otRate').value,
-          pkrRate: document.getElementById('pkrRate').value,
-          actualSalary: document.getElementById('actualSalaryInput').value
-      };
+      currentData.settings = { baseSalary: document.getElementById('baseSalary').value, otRate: document.getElementById('otRate').value, pkrRate: document.getElementById('pkrRate').value, actualSalary: document.getElementById('actualSalaryInput').value };
       applyToUI();
       const year = document.getElementById('yearSelect').value, month = document.getElementById('monthSelect').value;
-      localStorage.setItem(`ot_v4_${year}_${month}`, JSON.stringify(currentData));
+      localStorage.setItem(`ot_data_${year}_${month}`, JSON.stringify(currentData));
       if(auth.currentUser) await set(ref(db, `users/${auth.currentUser.uid}/${year}/${month}`), currentData);
       window.closeSettings();
-      showToast("Settings Updated ✅");
   };
-
-  function applyToUI() {
-      const s = currentData.settings || {};
-      document.getElementById('baseSalary').value = s.baseSalary || 2835;
-      document.getElementById('otRate').value = s.otRate || 17.72;
-      document.getElementById('pkrRate').value = s.pkrRate || 74.2;
-      document.getElementById('actualSalaryInput').value = s.actualSalary || "";
-      
-      const rate = parseFloat(s.otRate) || 17.72;
-      let totalHrs = 0;
-      
-      Object.keys(currentData.overtime || {}).forEach(key => {
-          const day = key.split('-')[1];
-          const val = parseFloat(currentData.overtime[key]) || 0;
-          totalHrs += val;
-          const displayHrs = document.getElementById(`val-hrs-${day}`);
-          const displayAmt = document.getElementById(`val-amt-${day}`);
-          if(displayHrs) displayHrs.innerText = val > 0 ? val : "0";
-          if(displayAmt) displayAmt.innerText = (val * rate).toFixed(2);
-      });
-      
-      const otSAR = totalHrs * rate;
-      const base = parseFloat(s.baseSalary) || 2835;
-      document.getElementById('totalHrs').innerText = totalHrs;
-      document.getElementById('totalOT').innerText = otSAR.toFixed(2);
-      document.getElementById('grandSAR').innerText = (base + otSAR).toFixed(2) + " SAR";
-      document.getElementById('grandPKR').innerText = ((base + otSAR) * (parseFloat(s.pkrRate)||74.2)).toLocaleString(undefined,{minimumFractionDigits:2});
-      document.getElementById('displayActual').innerText = (parseFloat(s.actualSalary)||0).toFixed(2) + " SAR";
-  }
 
   window.googleLogin = () => signInWithPopup(auth, new GoogleAuthProvider());
   window.logout = () => { localStorage.clear(); signOut(auth).then(() => location.reload()); };
-  window.closeEntry = () => document.getElementById('entryModal').style.display = 'none';
-  window.closeSettings = () => document.getElementById('settingsModal').style.display = 'none';
-  window.openSettings = () => document.getElementById('settingsModal').style.display = 'block';
-  function showToast(m) { const t = document.getElementById("toast"); t.innerText = m; t.className = "show"; setTimeout(() => t.className = "", 2500); }
 </script>
 
 <script>
+    let lineChart, barChart, pieChart;
+    let trendMonth = new Date().getMonth() + 1, trendYear = new Date().getFullYear();
+    let touchstartX = 0, touchendX = 0;
+
+    function applyToUI() {
+        const s = currentData.settings || {};
+        document.getElementById('baseSalary').value = s.baseSalary || 2835;
+        document.getElementById('otRate').value = s.otRate || 17.72;
+        document.getElementById('pkrRate').value = s.pkrRate || 74.2;
+        document.getElementById('actualSalaryInput').value = s.actualSalary || "";
+        
+        let tHrs = 0; const rate = parseFloat(s.otRate) || 17.72;
+        Object.keys(currentData.overtime || {}).forEach(k => {
+            const day = k.split('-')[1], val = parseFloat(currentData.overtime[k]) || 0;
+            tHrs += val;
+            if(document.getElementById(`val-hrs-${day}`)) document.getElementById(`val-hrs-${day}`).innerText = val;
+            if(document.getElementById(`val-amt-${day}`)) document.getElementById(`val-amt-${day}`).innerText = (val * rate).toFixed(2);
+        });
+        document.getElementById('totalHrs').innerText = tHrs;
+        document.getElementById('totalOT').innerText = (tHrs * rate).toFixed(2);
+        const totalSAR = (parseFloat(s.baseSalary)||2835) + (tHrs * rate);
+        document.getElementById('grandSAR').innerText = totalSAR.toFixed(2) + " SAR";
+        document.getElementById('grandPKR').innerText = (totalSAR * (parseFloat(s.pkrRate)||74.2)).toLocaleString(undefined,{minimumFractionDigits:2});
+        document.getElementById('displayActual').innerText = (parseFloat(s.actualSalary)||0).toFixed(2) + " SAR";
+    }
+
     function initCalendar() {
         const m = document.getElementById('monthSelect').value, y = document.getElementById('yearSelect').value;
         const days = new Date(y, m, 0).getDate(), today = new Date();
-        let html = '<div class="row" style="background:#f1f5f9; font-weight:800; font-size:11px; cursor:default;"><div>DATE</div><div>DAY</div><div>HRS</div><div>SAR</div></div>';
+        let html = '<div class="row" style="background:#f1f5f9; font-weight:800; font-size:11px;"><div>DATE</div><div>DAY</div><div>HRS</div><div>SAR</div></div>';
         for (let d = 1; d <= days; d++) {
             const dateObj = new Date(y, m - 1, d), dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
             const isToday = (d === today.getDate() && parseInt(m) === (today.getMonth()+1) && parseInt(y) === today.getFullYear()) ? 'current-day-highlight' : '';
-            html += `<div class="row ${isToday}" onclick="window.openEntry(${d})">
-                <div style="font-weight:700; color:#1e3a8a">${d}/${m}</div>
-                <div style="color:${dayName==='Fri'?'#ef4444':'#64748b'}; font-weight:700;">${dayName}</div>
-                <div id="val-hrs-${d}" style="font-weight:800;">0</div>
-                <div id="val-amt-${d}" style="font-weight:800; color:#16a34a">0.00</div>
-            </div>`;
+            html += `<div class="row ${isToday}" onclick="window.openEntry(${d})"><div style="font-weight:700; color:#1e3a8a">${d}/${m}</div><div style="color:${dayName==='Fri'?'#ef4444':'#64748b'}; font-weight:700;">${dayName}</div><div id="val-hrs-${d}">0</div><div id="val-amt-${d}" style="font-weight:800; color:#16a34a">0.00</div></div>`;
         }
         document.getElementById('calendarRows').innerHTML = html;
-        setTimeout(window.scrollToCurrentDay, 500);
     }
 
-    window.scrollToCurrentDay = function() {
-        const active = document.querySelector('.current-day-highlight');
-        if(active) active.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    window.openEntry = (day) => {
+        activeDay = day;
+        const hrs = (currentData.overtime && currentData.overtime[`day-${day}`]) || "";
+        const work = (currentData.workDetails && currentData.workDetails[`day-${day}`]) || "";
+        document.getElementById('modalDateTitle').innerText = `Entry for ${day}/${document.getElementById('monthSelect').value}`;
+        document.getElementById('entryHrs').value = hrs;
+        document.getElementById('entryWork').value = work;
+        document.getElementById('btnCloudAction').innerText = hrs ? "Update to Cloud" : "Save to Cloud";
+        document.getElementById('entryModal').style.display = 'block';
     };
+
+    window.changeTrendMonth = function(dir) {
+        trendMonth += dir;
+        if(trendMonth > 12) { trendMonth = 1; trendYear++; }
+        if(trendMonth < 1) { trendMonth = 12; trendYear--; }
+        updateCharts();
+    };
+
+    function updateCharts() {
+        const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        document.getElementById('trendMonthLabel').innerText = `${months[trendMonth-1]} ${trendYear}`;
+        const localData = JSON.parse(localStorage.getItem(`ot_data_${trendYear}_${trendMonth}`)) || { overtime: {} };
+        const days = new Date(trendYear, trendMonth, 0).getDate();
+        const labels = Array.from({length: days}, (_, i) => i + 1);
+        const values = labels.map(d => parseFloat(localData.overtime[`day-${d}`]) || 0);
+
+        if(lineChart) lineChart.destroy();
+        lineChart = new Chart(document.getElementById('dailyTrendChart'), { type: 'line', data: { labels, datasets: [{ data: values, borderColor: '#3b82f6', fill: true, backgroundColor: 'rgba(59,130,246,0.1)', tension: 0.3 }] }, options: { plugins: { legend: { display: false } } } });
+
+        const barData = months.map((_, i) => {
+            const d = JSON.parse(localStorage.getItem(`ot_data_${trendYear}_${i+1}`)) || { overtime: {} };
+            let t = 0; Object.values(d.overtime).forEach(v => t += parseFloat(v) || 0); return t;
+        });
+        if(barChart) barChart.destroy();
+        barChart = new Chart(document.getElementById('otBarChart'), { type: 'bar', data: { labels: months, datasets: [{ label: 'OT Hrs', data: barData, backgroundColor: '#3b82f6' }] } });
+    }
+
+    function switchTab(t) {
+        document.querySelectorAll('.tab, .view-content').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-'+t).classList.add('active');
+        document.getElementById(t+'View').classList.add('active');
+        if(t === 'analytics') updateCharts();
+    }
+
+    document.getElementById('mainApp').addEventListener('touchstart', e => touchstartX = e.changedTouches[0].screenX);
+    document.getElementById('mainApp').addEventListener('touchend', e => { touchendX = e.changedTouches[0].screenX; if(touchendX < touchstartX - 70) switchTab('analytics'); if(touchendX > touchstartX + 70) switchTab('dashboard'); });
+
+    window.closeEntry = () => document.getElementById('entryModal').style.display = 'none';
+    window.openSettings = () => document.getElementById('settingsModal').style.display = 'block';
+    window.closeSettings = () => document.getElementById('settingsModal').style.display = 'none';
+    function showToast(m) { const t = document.getElementById("toast"); t.innerText = m; t.className = "show"; setTimeout(() => t.className = "", 2500); }
 
     window.onload = () => {
         const m = document.getElementById('monthSelect'), y = document.getElementById('yearSelect'), now = new Date();
         const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
         months.forEach((name, i) => { let opt = new Option(name, i + 1); if(i === now.getMonth()) opt.selected = true; m.add(opt); });
         for(let i=0; i<5; i++) y.add(new Option(now.getFullYear()-i, now.getFullYear()-i));
+        setTimeout(() => { document.getElementById('splashScreen').style.opacity = '0'; setTimeout(() => document.getElementById('splashScreen').style.display = 'none', 500); }, 1000);
         initCalendar();
     };
-
-    function switchTab(t) {
-        document.querySelectorAll('.tab, .view-content').forEach(el => el.classList.remove('active'));
-        document.getElementById('tab-'+t).classList.add('active');
-        document.getElementById(t+'View').classList.add('active');
-        if(t === 'dashboard') window.scrollToCurrentDay();
-    }
 </script>
 </body>
 </html>
