@@ -34,9 +34,12 @@
         .selector-container { display: flex; gap: 10px; margin: 15px 0; }
         select { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; font-weight: 600; background: #fff; outline: none; }
 
-        .row { display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 2fr; padding: 14px 5px; border-bottom: 1px solid #f8fafc; align-items: center; text-align: center; font-size: 13px; }
+        .row { display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr 1fr; padding: 14px 5px; border-bottom: 1px solid #f8fafc; align-items: center; text-align: center; font-size: 13px; }
         .row input { width: 45px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 10px; text-align: center; font-weight: 700; }
         .current-day-highlight { background-color: #dcfce7 !important; border-left: 5px solid #22c55e; }
+
+        .dot-btn { width: 12px; height: 12px; border-radius: 50%; display: inline-block; cursor: pointer; border: 2px solid #cbd5e1; background: white; margin: auto; }
+        .dot-green { background: #22c55e; border-color: #16a34a; }
 
         .top-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .mini-card { background: #fff; padding: 15px; border-radius: 18px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
@@ -49,7 +52,7 @@
         .modal-content { background: white; margin: 12% auto; padding: 30px 25px; border-radius: 32px; width: 85%; max-width: 350px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
         .setting-field { margin-bottom: 15px; }
         .setting-field label { font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 5px; display: block; }
-        .setting-field input { width: 100%; padding: 14px; border-radius: 14px; border: 1px solid #e2e8f0; font-weight: 700; box-sizing: border-box; }
+        .setting-field input, .setting-field textarea { width: 100%; padding: 14px; border-radius: 14px; border: 1px solid #e2e8f0; font-weight: 700; box-sizing: border-box; font-family: inherit; }
 
         .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
         .btn-done { flex: 2; padding: 16px; background: var(--gradient); color: white; border: none; border-radius: 16px; font-weight: 800; cursor: pointer; }
@@ -143,6 +146,20 @@
     </div>
 </div>
 
+<div id="detailsModal" class="modal">
+    <div class="modal-content">
+        <h3 style="margin-top:0; color:var(--primary); text-align:center;">DETAILS</h3>
+        <input type="hidden" id="currentDetailDay">
+        <div class="setting-field">
+            <textarea id="detailInput" rows="4" placeholder="Enter remarks here..."></textarea>
+        </div>
+        <div class="modal-btns">
+            <button class="btn-cancel" onclick="window.closeDetails()">CANCEL</button>
+            <button class="btn-done" id="detailSaveBtn" onclick="window.saveDetail()">SAVE</button>
+        </div>
+    </div>
+</div>
+
 <div id="settingsModal" class="modal">
     <div class="modal-content">
         <h3 style="margin-top:0; color:var(--primary); text-align:center;">Settings</h3>
@@ -175,7 +192,6 @@
   const db = getDatabase(app);
   const auth = getAuth(app);
 
-  // Splash Screen Removal after 1 second (Strictly)
   window.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
           const ss = document.getElementById('splashScreen');
@@ -190,9 +206,8 @@
           document.getElementById('loginScreen').style.display = 'none';
           document.getElementById('mainApp').style.display = 'block';
           document.getElementById('userName').innerText = user.displayName || user.email;
-          window.loadUserData(); // Background sync start
+          window.loadUserData();
       } else {
-          // If no user but offline data exists, show app anyway (Local Only)
           const hasLocal = localStorage.getItem('last_user_id');
           if(hasLocal) {
               document.getElementById('loginScreen').style.display = 'none';
@@ -209,19 +224,20 @@
       const year = document.getElementById('yearSelect').value;
       const month = document.getElementById('monthSelect').value;
       const overtime = {};
+      const remarks = window.currentRemarks || {};
+      
       document.querySelectorAll('.ot-input').forEach(input => { if(input.value) overtime[input.dataset.id] = input.value; });
       const data = { 
           settings: { 
               baseSalary: document.getElementById('baseSalary').value, otRate: document.getElementById('otRate').value, 
               pkrRate: document.getElementById('pkrRate').value, actualSalary: document.getElementById('actualSalaryInput').value
           }, 
-          overtime 
+          overtime,
+          remarks
       };
 
-      // Save Local first (Immediate)
       localStorage.setItem(`ot_data_${year}_${month}`, JSON.stringify(data));
       
-      // Save Cloud (If internet available)
       if (user) {
           localStorage.setItem('last_user_id', user.uid);
           try {
@@ -238,14 +254,12 @@
       const year = document.getElementById('yearSelect').value, month = document.getElementById('monthSelect').value;
       window.initCalendar();
       
-      // Step 1: Immediate Load from LocalStorage
       const localData = localStorage.getItem(`ot_data_${year}_${month}`);
       if(localData) {
           applyData(JSON.parse(localData));
           window.scrollToCurrentDay();
       }
 
-      // Step 2: Background Sync with Firebase
       if (auth.currentUser) {
           onValue(ref(db, `users/${auth.currentUser.uid}/${year}/${month}`), (snapshot) => {
               const val = snapshot.val();
@@ -259,16 +273,36 @@
 
   window.googleLogin = () => signInWithPopup(auth, new GoogleAuthProvider());
   window.logout = () => { localStorage.clear(); signOut(auth).then(() => location.reload()); };
+
+  function applyData(val) {
+      if(val.settings) {
+          document.getElementById('baseSalary').value = val.settings.baseSalary || 2835;
+          document.getElementById('otRate').value = val.settings.otRate || 17.72;
+          document.getElementById('pkrRate').value = val.settings.pkrRate || 74.2;
+          document.getElementById('actualSalaryInput').value = val.settings.actualSalary || "";
+      }
+      if(val.overtime) Object.keys(val.overtime).forEach(k => { if(document.querySelector(`[data-id="${k}"]`)) document.querySelector(`[data-id="${k}"]`).value = val.overtime[k]; });
+      
+      window.currentRemarks = val.remarks || {};
+      Object.keys(window.currentRemarks).forEach(dayId => {
+          if(window.currentRemarks[dayId]) {
+              const dot = document.querySelector(`.dot-btn[data-day="${dayId}"]`);
+              if(dot) dot.classList.add('dot-green');
+          }
+      });
+
+      window.calculateAll();
+  }
 </script>
 
 <script>
-    // All v3.6 functions (Swipe, Scroll, Charts, Calculate) remain EXACTLY the same
     let barChart, pieChart, lineChart;
     let trendMonth = new Date().getMonth() + 1;
     let trendYear = new Date().getFullYear();
     let currentTab = 'dashboard';
     let touchstartX = 0;
     let touchendX = 0;
+    window.currentRemarks = {};
 
     document.getElementById('mainApp').addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; });
     document.getElementById('mainApp').addEventListener('touchend', e => { 
@@ -301,13 +335,48 @@
     window.initCalendar = function() {
         const month = parseInt(document.getElementById('monthSelect').value), year = parseInt(document.getElementById('yearSelect').value);
         const days = new Date(year, month, 0).getDate(), today = new Date();
-        let html = '<div class="row" style="background:#f1f5f9; font-weight:800; font-size:10px;"><div>DATE</div><div>DAY</div><div>HRS</div><div>SAR</div></div>';
+        let html = '<div class="row" style="background:#f1f5f9; font-weight:800; font-size:10px;"><div>DATE</div><div>DAY</div><div>HRS</div><div>SAR</div><div>REM</div></div>';
         for (let d = 1; d <= days; d++) {
             const dateObj = new Date(year, month - 1, d), dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
             const isToday = (d === today.getDate() && month === (today.getMonth()+1) && year === today.getFullYear()) ? 'current-day-highlight' : '';
-            html += `<div class="row ${isToday}"><div style="font-weight:700; color:#1e3a8a">${d}/${month}</div><div style="color:${(dayName==='Fri'?'#ef4444':'#64748b')}; font-weight:700;">${dayName}</div><div><input type="text" inputmode="decimal" class="ot-input" data-id="day-${d}" oninput="calculateAll(); autoLocalSave();"></div><div id="amt-${d}" style="font-weight:800; color:#16a34a">0.00</div></div>`;
+            html += `<div class="row ${isToday}">
+                        <div style="font-weight:700; color:#1e3a8a">${d}/${month}</div>
+                        <div style="color:${(dayName==='Fri'?'#ef4444':'#64748b')}; font-weight:700;">${dayName}</div>
+                        <div><input type="text" inputmode="decimal" class="ot-input" data-id="day-${d}" oninput="calculateAll(); autoLocalSave();"></div>
+                        <div id="amt-${d}" style="font-weight:800; color:#16a34a">0.00</div>
+                        <div><span class="dot-btn" data-day="day-${d}" onclick="window.openDetails('${d}')"></span></div>
+                    </div>`;
         }
         document.getElementById('calendarRows').innerHTML = html;
+    };
+
+    window.openDetails = function(day) {
+        const dayId = `day-${day}`;
+        document.getElementById('currentDetailDay').value = dayId;
+        const existingText = window.currentRemarks[dayId] || "";
+        document.getElementById('detailInput').value = existingText;
+        document.getElementById('detailSaveBtn').innerText = existingText ? "UPDATE" : "SAVE";
+        document.getElementById('detailsModal').style.display = 'block';
+    };
+
+    window.closeDetails = function() {
+        document.getElementById('detailsModal').style.display = 'none';
+    };
+
+    window.saveDetail = function() {
+        const dayId = document.getElementById('currentDetailDay').value;
+        const text = document.getElementById('detailInput').value.trim();
+        const dot = document.querySelector(`.dot-btn[data-day="${dayId}"]`);
+        
+        if(text) {
+            window.currentRemarks[dayId] = text;
+            dot.classList.add('dot-green');
+        } else {
+            delete window.currentRemarks[dayId];
+            dot.classList.remove('dot-green');
+        }
+        window.autoLocalSave();
+        window.closeDetails();
     };
 
     window.calculateAll = function() {
@@ -383,20 +452,9 @@
         const year = document.getElementById('yearSelect').value, month = document.getElementById('monthSelect').value, overtime = {};
         document.querySelectorAll('.ot-input').forEach(input => { if(input.value) overtime[input.dataset.id] = input.value; });
         localStorage.setItem(`ot_data_${year}_${month}`, JSON.stringify({ 
-            settings: { baseSalary: document.getElementById('baseSalary').value, otRate: document.getElementById('otRate').value, pkrRate: document.getElementById('pkrRate').value, actualSalary: document.getElementById('actualSalaryInput').value }, overtime 
+            settings: { baseSalary: document.getElementById('baseSalary').value, otRate: document.getElementById('otRate').value, pkrRate: document.getElementById('pkrRate').value, actualSalary: document.getElementById('actualSalaryInput').value }, overtime, remarks: window.currentRemarks
         }));
     };
-
-    function applyData(val) {
-        if(val.settings) {
-            document.getElementById('baseSalary').value = val.settings.baseSalary || 2835;
-            document.getElementById('otRate').value = val.settings.otRate || 17.72;
-            document.getElementById('pkrRate').value = val.settings.pkrRate || 74.2;
-            document.getElementById('actualSalaryInput').value = val.settings.actualSalary || "";
-        }
-        if(val.overtime) Object.keys(val.overtime).forEach(k => { if(document.querySelector(`[data-id="${k}"]`)) document.querySelector(`[data-id="${k}"]`).value = val.overtime[k]; });
-        window.calculateAll();
-    }
 
     window.openSettings = () => { document.getElementById('settingsModal').style.display = 'block'; };
     window.closeSettings = () => { document.getElementById('settingsModal').style.display = 'none'; };
