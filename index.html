@@ -21,7 +21,10 @@
 
         #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--gradient); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; color: white; }
         .login-box { background: rgba(255,255,255,0.15); padding: 40px 25px; border-radius: 28px; backdrop-filter: blur(15px); text-align: center; width: 85%; max-width: 350px; border: 1px solid rgba(255,255,255,0.2); }
-        .google-btn { width: 100%; padding: 15px; margin-top: 25px; border-radius: 14px; border: none; background: #fff; color: #444; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 16px; }
+        .google-btn { width: 100%; padding: 15px; margin-top: 25px; border-radius: 14px; border: none; background: #fff; color: #444; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 16px; transition: opacity 0.3s ease; }
+        .google-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .login-select { width: 100%; padding: 14px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.3); font-weight: 700; background: rgba(255,255,255,0.2); color: white; outline: none; margin-top: 20px; box-sizing: border-box; font-size: 15px; }
+        .login-select option { color: #334155; background: #fff; }
 
         #mainApp { display: none; padding-bottom: 120px; touch-action: pan-y; }
         .header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; background: var(--gradient); color: white; position: sticky; top: 0; z-index: 100; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -80,7 +83,14 @@
 <div id="loginScreen">
     <div class="login-box">
         <h1 style="margin:0; font-size:26px;">OT Tracker Pro</h1>
-        <button class="google-btn" onclick="window.googleLogin()">
+        
+        <select id="countrySelect" class="login-select" onchange="window.handleCountrySelection()">
+            <option value="" disabled selected>Select Country</option>
+            <option value="PK">Pakistan</option>
+            <option value="IN">India</option>
+        </select>
+
+        <button id="googleLoginBtn" class="google-btn" onclick="window.googleLogin()" disabled>
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20"> Sign in with Google
         </button>
     </div>
@@ -114,7 +124,7 @@
         <div class="final-summary">
             <div style="font-weight: 800; color: #1e40af; font-size: 11px;">MONTHLY GRAND TOTAL</div>
             <div style="font-size: 22px; font-weight: 800;" id="grandSAR">0.00 SAR</div>
-            <div style="font-size: 34px; font-weight: 900; color: #2563eb;"><small style="font-size:16px;">PKR</small> <span id="grandPKR">0.00</span></div>
+            <div style="font-size: 34px; font-weight: 900; color: #2563eb;"><small style="font-size:16px;" id="currencyLabel">PKR</small> <span id="grandPKR">0.00</span></div>
             <div class="actual-salary-row">ACTUAL SALARY: <span id="displayActual">0.00</span></div>
         </div>
         <button class="save-all-btn" onclick="window.saveUserData()">☁️ SYNC TO CLOUD</button>
@@ -131,7 +141,6 @@
             <canvas id="dailyTrendChart"></canvas>
         </div>
         <div class="selector-container" style="margin-bottom: 20px;">
-            <label style="font-weight:800; color:var(--primary); padding-top:10px;">Yearly Summary:</label>
             <select id="yearSelectAnalytics" onchange="updateCharts()"></select>
         </div>
         <div class="chart-card">
@@ -165,7 +174,7 @@
         <h3 style="margin-top:0; color:var(--primary); text-align:center;">Settings</h3>
         <div class="setting-field"><label>Monthly Basic Salary</label><input type="number" id="baseSalary"></div>
         <div class="setting-field"><label>OT Rate (1 Hr)</label><input type="number" id="otRate" step="0.01"></div>
-        <div class="setting-field"><label>PKR Rate</label><input type="number" id="pkrRate" step="0.1"></div>
+        <div class="setting-field"><label id="settingsRateLabel">PKR Rate</label><input type="number" id="pkrRate" step="0.1"></div>
         <div class="setting-field"><label>Actual Salary (Specific for month)</label><input type="number" id="actualSalaryInput"></div>
         <div class="modal-btns">
             <button class="btn-cancel" onclick="window.closeSettings()">CANCEL</button>
@@ -219,6 +228,31 @@
       }
   });
 
+  window.handleCountrySelection = () => {
+      const country = document.getElementById('countrySelect').value;
+      const loginBtn = document.getElementById('googleLoginBtn');
+      if (country) {
+          loginBtn.disabled = false;
+          localStorage.setItem('user_selected_country', country);
+      }
+  };
+
+  window.fetchLiveExchangeRate = async (country) => {
+      let targetCurrency = country === 'IN' ? 'INR' : 'PKR';
+      let fallbackRate = country === 'IN' ? 22.10 : 74.20;
+      try {
+          const res = await fetch('https://open.er-api.com/v6/latest/SAR');
+          if (!res.ok) throw new Error('API unstable');
+          const data = await res.ok ? await res.json() : null;
+          if (data && data.rates && data.rates[targetCurrency]) {
+              return parseFloat(data.rates[targetCurrency]).toFixed(2);
+          }
+          return fallbackRate;
+      } catch (e) {
+          return fallbackRate;
+      }
+  };
+
   window.saveUserData = async () => {
       const user = auth.currentUser;
       const year = document.getElementById('yearSelect').value;
@@ -230,7 +264,8 @@
       const data = { 
           settings: { 
               baseSalary: document.getElementById('baseSalary').value, otRate: document.getElementById('otRate').value, 
-              pkrRate: document.getElementById('pkrRate').value, actualSalary: document.getElementById('actualSalaryInput').value
+              pkrRate: document.getElementById('pkrRate').value, actualSalary: document.getElementById('actualSalaryInput').value,
+              country: localStorage.getItem('user_selected_country') || 'PK'
           }, 
           overtime,
           remarks
@@ -271,16 +306,41 @@
       }
   };
 
-  window.googleLogin = () => signInWithPopup(auth, new GoogleAuthProvider());
+  window.googleLogin = async () => {
+      const country = document.getElementById('countrySelect').value;
+      if(!country) return;
+      
+      const liveRate = await window.fetchLiveExchangeRate(country);
+      localStorage.setItem('temp_fetched_rate', liveRate);
+      
+      signInWithPopup(auth, new GoogleAuthProvider());
+  };
+  
   window.logout = () => { localStorage.clear(); signOut(auth).then(() => location.reload()); };
 
   function applyData(val) {
+      let savedCountry = val.settings?.country || localStorage.getItem('user_selected_country') || 'PK';
+      localStorage.setItem('user_selected_country', savedCountry);
+      
+      let curText = savedCountry === 'IN' ? 'INR' : 'PKR';
+      let defRate = savedCountry === 'IN' ? 22.1 : 74.2;
+      
+      let tempRate = localStorage.getItem('temp_fetched_rate');
+      let finalRate = val.settings?.pkrRate || tempRate || defRate;
+      if(tempRate) localStorage.removeItem('temp_fetched_rate');
+
+      document.getElementById('currencyLabel').innerText = curText;
+      document.getElementById('settingsRateLabel').innerText = curText + " Rate";
+
       if(val.settings) {
           document.getElementById('baseSalary').value = val.settings.baseSalary || 2835;
           document.getElementById('otRate').value = val.settings.otRate || 17.72;
-          document.getElementById('pkrRate').value = val.settings.pkrRate || 74.2;
+          document.getElementById('pkrRate').value = finalRate;
           document.getElementById('actualSalaryInput').value = val.settings.actualSalary || "";
+      } else {
+          document.getElementById('pkrRate').value = finalRate;
       }
+      
       if(val.overtime) Object.keys(val.overtime).forEach(k => { if(document.querySelector(`[data-id="${k}"]`)) document.querySelector(`[data-id="${k}"]`).value = val.overtime[k]; });
       
       window.currentRemarks = val.remarks || {};
@@ -452,11 +512,20 @@
         const year = document.getElementById('yearSelect').value, month = document.getElementById('monthSelect').value, overtime = {};
         document.querySelectorAll('.ot-input').forEach(input => { if(input.value) overtime[input.dataset.id] = input.value; });
         localStorage.setItem(`ot_data_${year}_${month}`, JSON.stringify({ 
-            settings: { baseSalary: document.getElementById('baseSalary').value, otRate: document.getElementById('otRate').value, pkrRate: document.getElementById('pkrRate').value, actualSalary: document.getElementById('actualSalaryInput').value }, overtime, remarks: window.currentRemarks
+            settings: { 
+                baseSalary: document.getElementById('baseSalary').value, otRate: document.getElementById('otRate').value, 
+                pkrRate: document.getElementById('pkrRate').value, actualSalary: document.getElementById('actualSalaryInput').value,
+                country: localStorage.getItem('user_selected_country') || 'PK'
+            }, overtime, remarks: window.currentRemarks
         }));
     };
 
-    window.openSettings = () => { document.getElementById('settingsModal').style.display = 'block'; };
+    window.openSettings = () => { 
+        let savedCountry = localStorage.getItem('user_selected_country') || 'PK';
+        let curText = savedCountry === 'IN' ? 'INR' : 'PKR';
+        document.getElementById('settingsRateLabel').innerText = curText + " Rate";
+        document.getElementById('settingsModal').style.display = 'block'; 
+    };
     window.closeSettings = () => { document.getElementById('settingsModal').style.display = 'none'; };
     window.saveAndCloseSettings = () => { window.calculateAll(); window.autoLocalSave(); window.saveUserData(); document.getElementById('actualSalaryInput').value = ""; window.closeSettings(); };
 
