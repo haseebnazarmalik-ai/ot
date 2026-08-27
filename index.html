@@ -3,540 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>OT Tracker Pro v3.7</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1976d2">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>OT Tracker Pro - App Moved</title>
     <style>
-        :root { --primary: #1e3a8a; --gradient: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); --bg: #f8fafc; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #334155; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
-
-        /* Splash Screen Style */
-        #splashScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--gradient); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20000; transition: opacity 0.5s ease; }
-        .splash-logo { width: 80px; height: 80px; background: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin-bottom: 20px; }
-        
-        .tabs-container { display: flex; background: #fff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 75px; z-index: 99; }
-        .tab { flex: 1; padding: 15px; text-align: center; font-weight: 800; font-size: 14px; color: #64748b; cursor: pointer; transition: 0.3s; border-bottom: 3px solid transparent; }
-        .tab.active { color: var(--primary); border-bottom-color: var(--primary); background: #f0f7ff; }
-
-        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--gradient); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; color: white; }
-        .login-box { background: rgba(255,255,255,0.15); padding: 40px 25px; border-radius: 28px; backdrop-filter: blur(15px); text-align: center; width: 85%; max-width: 350px; border: 1px solid rgba(255,255,255,0.2); }
-        .google-btn { width: 100%; padding: 15px; margin-top: 25px; border-radius: 14px; border: none; background: #fff; color: #444; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 16px; transition: opacity 0.3s ease; }
-        .google-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .login-select { width: 100%; padding: 14px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.3); font-weight: 700; background: rgba(255,255,255,0.2); color: white; outline: none; margin-top: 20px; box-sizing: border-box; font-size: 15px; }
-        .login-select option { color: #334155; background: #fff; }
-
-        #mainApp { display: none; padding-bottom: 120px; touch-action: pan-y; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; background: var(--gradient); color: white; position: sticky; top: 0; z-index: 100; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .profile-dp { width: 42px; height: 42px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.8); cursor: pointer; object-fit: cover; }
-
-        .view-content { display: none; padding: 10px 15px; max-width: 600px; margin: auto; animation: slideIn 0.3s ease-out; }
-        .view-content.active { display: block; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .selector-container { display: flex; gap: 10px; margin: 15px 0; }
-        select { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; font-weight: 600; background: #fff; outline: none; }
-
-        .row { display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr 1fr; padding: 14px 5px; border-bottom: 1px solid #f8fafc; align-items: center; text-align: center; font-size: 13px; }
-        .row input { width: 45px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 10px; text-align: center; font-weight: 700; }
-        .current-day-highlight { background-color: #dcfce7 !important; border-left: 5px solid #22c55e; }
-
-        .dot-btn { width: 12px; height: 12px; border-radius: 50%; display: inline-block; cursor: pointer; border: 2px solid #cbd5e1; background: white; margin: auto; }
-        .dot-green { background: #22c55e; border-color: #16a34a; }
-
-        .top-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .mini-card { background: #fff; padding: 15px; border-radius: 18px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-        .final-summary { margin-top: 20px; background: #eff6ff; border-radius: 24px; padding: 25px; text-align: center; border: 1px solid #dbeafe; }
-        .actual-salary-row { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #bfdbfe; color: #1e3a8a; font-weight: 900; font-size: 18px; }
-
-        .save-all-btn { position: fixed; bottom: 30px; right: 20px; padding: 18px 30px; background: #16a34a; color: white; border: none; border-radius: 50px; font-weight: 800; z-index: 999; box-shadow: 0 10px 25px rgba(22,163,74,0.4); cursor: pointer; }
-
-        .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); }
-        .modal-content { background: white; margin: 12% auto; padding: 30px 25px; border-radius: 32px; width: 85%; max-width: 350px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
-        .setting-field { margin-bottom: 15px; }
-        .setting-field label { font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 5px; display: block; }
-        .setting-field input, .setting-field textarea { width: 100%; padding: 14px; border-radius: 14px; border: 1px solid #e2e8f0; font-weight: 700; box-sizing: border-box; font-family: inherit; }
-
-        .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-done { flex: 2; padding: 16px; background: var(--gradient); color: white; border: none; border-radius: 16px; font-weight: 800; cursor: pointer; }
-        .btn-cancel { flex: 1; padding: 16px; background: #f1f5f9; color: #64748b; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; }
-
-        #toast { visibility: hidden; min-width: 200px; background-color: #333; color: #fff; text-align: center; border-radius: 50px; padding: 12px 24px; position: fixed; z-index: 2000; bottom: 100px; left: 50%; transform: translateX(-50%); font-weight: 600; }
-        #toast.show { visibility: visible; animation: fadeinout 2.5s; }
-        @keyframes fadeinout { 0%, 100% { opacity: 0; bottom: 80px; } 20%, 80% { opacity: 1; bottom: 100px; } }
-
-        .chart-card { background:#fff; border-radius:24px; padding:20px; margin-bottom:20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
-        .chart-controls { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px; }
-        .nav-btn { background: #f1f5f9; border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; font-weight: 900; color: var(--primary); }
+        :root { --primary: #1e3a8a; --gradient: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--gradient);
+            color: #334155;
+            padding: 20px;
+        }
+        .card {
+            background: rgba(255,255,255,0.97);
+            border-radius: 28px;
+            padding: 40px 28px;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+        }
+        .icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 20px;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 20px auto;
+            color: white;
+        }
+        h1 {
+            font-size: 20px;
+            color: var(--primary);
+            margin: 0 0 12px 0;
+        }
+        p {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #64748b;
+            margin: 0 0 24px 0;
+        }
+        .note {
+            font-size: 12px;
+            background: #eff6ff;
+            border: 1px solid #dbeafe;
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin-bottom: 24px;
+            color: #1e40af;
+            font-weight: 600;
+        }
+        a.btn {
+            display: block;
+            text-decoration: none;
+            background: var(--gradient);
+            color: white;
+            font-weight: 800;
+            padding: 16px;
+            border-radius: 16px;
+            font-size: 15px;
+            box-shadow: 0 10px 25px rgba(30,58,138,0.3);
+        }
+        .url {
+            margin-top: 16px;
+            font-size: 11px;
+            color: #94a3b8;
+            word-break: break-all;
+        }
     </style>
 </head>
-<body id="appBody">
-
-<div id="splashScreen">
-    <div class="splash-logo"><span style="font-size:40px;">⏳</span></div>
-    <div style="color:white; font-weight:800; font-size:22px; letter-spacing:1px;">OT TRACKER PRO</div>
-    <div style="color:rgba(255,255,255,0.7); margin-top:10px; font-size:12px;">v3.7 • Loading Local Data...</div>
-</div>
-
-<div id="toast">Saved ✅</div>
-
-<div id="loginScreen">
-    <div class="login-box">
-        <h1 style="margin:0; font-size:26px;">OT Tracker Pro</h1>
-        
-        <select id="countrySelect" class="login-select" onchange="window.handleCountrySelection()">
-            <option value="" disabled selected>Select Country</option>
-            <option value="PK">Pakistan</option>
-            <option value="IN">India</option>
-        </select>
-
-        <button id="googleLoginBtn" class="google-btn" onclick="window.googleLogin()" disabled>
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20"> Sign in with Google
-        </button>
+<body>
+    <div class="card">
+        <div class="icon">⏳</div>
+        <h1>OT Tracker Pro Has Moved</h1>
+        <p>This app is no longer available here. It has permanently moved to a new address, and your data is safe.</p>
+        <div class="note">Sign in with the same Google account you used before — all your saved data will be there.</div>
+        <a class="btn" href="https://docutoolbox.com/overtime-calculator/">Go to the New App</a>
+        <div class="url">https://docutoolbox.com/overtime-calculator/</div>
     </div>
-</div>
-
-<div id="mainApp">
-    <div class="header">
-        <div>
-            <div style="font-weight:800; font-size:18px;">DASHBOARD</div>
-            <div id="userName" style="font-size:11px; opacity:0.9;">Offline Mode</div>
-        </div>
-        <img id="userDP" class="profile-dp" src="https://www.w3schools.com/howto/img_avatar.png" onclick="window.openSettings()">
-    </div>
-
-    <div class="tabs-container">
-        <div id="tab-dashboard" class="tab active" onclick="switchTab('dashboard')">DASHBOARD</div>
-        <div id="tab-analytics" class="tab" onclick="switchTab('analytics')">ANALYTICS</div>
-    </div>
-
-    <div id="dashboardView" class="view-content active">
-        <div class="selector-container">
-            <select id="monthSelect" onchange="window.loadUserData()"></select>
-            <select id="yearSelect" onchange="window.loadUserData()"></select>
-        </div>
-        <div class="top-summary">
-            <div class="mini-card"><div>Total Hours</div><span id="totalHrs">0</span></div>
-            <div class="mini-card"><div>OT SAR</div><span id="totalOT">0.00</span></div>
-        </div>
-        <div style="background: #fff; border-radius: 22px; overflow: hidden; box-shadow: 0 4px 25px rgba(0,0,0,0.05);" id="calendarRows"></div>
-        
-        <div class="final-summary">
-            <div style="font-weight: 800; color: #1e40af; font-size: 11px;">MONTHLY GRAND TOTAL</div>
-            <div style="font-size: 22px; font-weight: 800;" id="grandSAR">0.00 SAR</div>
-            <div style="font-size: 34px; font-weight: 900; color: #2563eb;"><small style="font-size:16px;" id="currencyLabel">PKR</small> <span id="grandPKR">0.00</span></div>
-            <div class="actual-salary-row">ACTUAL SALARY: <span id="displayActual">0.00</span></div>
-        </div>
-        <button class="save-all-btn" onclick="window.saveUserData()">☁️ SYNC TO CLOUD</button>
-    </div>
-
-    <div id="analyticsView" class="view-content">
-        <div class="chart-card">
-            <h4 style="margin:0 0 10px 0; color:var(--primary); text-align:center;">Daily OT Trend (Zigzag)</h4>
-            <div class="chart-controls">
-                <button class="nav-btn" onclick="changeTrendMonth(-1)">❮</button>
-                <span id="trendMonthLabel" style="font-weight:800; color:var(--primary); min-width:100px; text-align:center;">-</span>
-                <button class="nav-btn" onclick="changeTrendMonth(1)">❯</button>
-            </div>
-            <canvas id="dailyTrendChart"></canvas>
-        </div>
-        <div class="selector-container" style="margin-bottom: 20px;">
-            <select id="yearSelectAnalytics" onchange="updateCharts()"></select>
-        </div>
-        <div class="chart-card">
-            <h4 style="margin:0 0 15px 0; color:var(--primary);">Month-wise OT Trend</h4>
-            <canvas id="otBarChart"></canvas>
-        </div>
-        <div class="chart-card" style="text-align: center;">
-            <h4 style="margin:0 0 5px 0; color:var(--primary);">Income Breakdown (%)</h4>
-            <div id="pieChartInfo" style="font-size: 13px; font-weight: 800; color: #2563eb; margin-bottom: 10px; height: 20px;">Based on Actual Salary</div>
-            <canvas id="incomePieChart"></canvas>
-        </div>
-    </div>
-</div>
-
-<div id="detailsModal" class="modal">
-    <div class="modal-content">
-        <h3 style="margin-top:0; color:var(--primary); text-align:center;">DETAILS</h3>
-        <input type="hidden" id="currentDetailDay">
-        <div class="setting-field">
-            <textarea id="detailInput" rows="4" placeholder="Enter remarks here..."></textarea>
-        </div>
-        <div class="modal-btns">
-            <button class="btn-cancel" onclick="window.closeDetails()">CANCEL</button>
-            <button class="btn-done" id="detailSaveBtn" onclick="window.saveDetail()">SAVE</button>
-        </div>
-    </div>
-</div>
-
-<div id="settingsModal" class="modal">
-    <div class="modal-content">
-        <h3 style="margin-top:0; color:var(--primary); text-align:center;">Settings</h3>
-        <div class="setting-field"><label>Monthly Basic Salary</label><input type="number" id="baseSalary"></div>
-        <div class="setting-field"><label>OT Rate (1 Hr)</label><input type="number" id="otRate" step="0.01"></div>
-        <div class="setting-field"><label id="settingsRateLabel">PKR Rate</label><input type="number" id="pkrRate" step="0.1"></div>
-        <div class="setting-field"><label>Actual Salary (Specific for month)</label><input type="number" id="actualSalaryInput"></div>
-        <div class="modal-btns">
-            <button class="btn-cancel" onclick="window.closeSettings()">CANCEL</button>
-            <button class="btn-done" onclick="window.saveAndCloseSettings()">SAVE & DONE</button>
-        </div>
-        <button onclick="window.logout()" style="width:100%; margin-top:20px; background:none; border:none; color:#ef4444; font-weight:700; cursor:pointer;">Logout</button>
-    </div>
-</div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
-  import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAywmVNaLkyudJelZ-Gdx6gL1hydzxe2cg",
-    authDomain: "haseeb-984fc.firebaseapp.com",
-    projectId: "haseeb-984fc",
-    databaseURL: "https://haseeb-984fc-default-rtdb.firebaseio.com",
-    appId: "1:868884894390:web:09f2edf8a4ccebe909cc17"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const auth = getAuth(app);
-
-  window.addEventListener('DOMContentLoaded', () => {
-      setTimeout(() => {
-          const ss = document.getElementById('splashScreen');
-          ss.style.opacity = '0';
-          setTimeout(() => ss.style.display = 'none', 500);
-      }, 1000);
-  });
-
-  onAuthStateChanged(auth, (user) => {
-      if (user) {
-          if(user.photoURL) document.getElementById('userDP').src = user.photoURL;
-          document.getElementById('loginScreen').style.display = 'none';
-          document.getElementById('mainApp').style.display = 'block';
-          document.getElementById('userName').innerText = user.displayName || user.email;
-          window.loadUserData();
-      } else {
-          const hasLocal = localStorage.getItem('last_user_id');
-          if(hasLocal) {
-              document.getElementById('loginScreen').style.display = 'none';
-              document.getElementById('mainApp').style.display = 'block';
-              window.loadUserData();
-          } else {
-              document.getElementById('loginScreen').style.display = 'flex';
-          }
-      }
-  });
-
-  window.handleCountrySelection = () => {
-      const country = document.getElementById('countrySelect').value;
-      const loginBtn = document.getElementById('googleLoginBtn');
-      if (country) {
-          loginBtn.disabled = false;
-          localStorage.setItem('user_selected_country', country);
-      }
-  };
-
-  window.fetchLiveExchangeRate = async (country) => {
-      let targetCurrency = country === 'IN' ? 'INR' : 'PKR';
-      let fallbackRate = country === 'IN' ? 22.10 : 74.20;
-      try {
-          const res = await fetch('https://open.er-api.com/v6/latest/SAR');
-          if (!res.ok) throw new Error('API unstable');
-          const data = await res.ok ? await res.json() : null;
-          if (data && data.rates && data.rates[targetCurrency]) {
-              return parseFloat(data.rates[targetCurrency]).toFixed(2);
-          }
-          return fallbackRate;
-      } catch (e) {
-          return fallbackRate;
-      }
-  };
-
-  window.saveUserData = async () => {
-      const user = auth.currentUser;
-      const year = document.getElementById('yearSelect').value;
-      const month = document.getElementById('monthSelect').value;
-      const overtime = {};
-      const remarks = window.currentRemarks || {};
-      
-      document.querySelectorAll('.ot-input').forEach(input => { if(input.value) overtime[input.dataset.id] = input.value; });
-      const data = { 
-          settings: { 
-              baseSalary: document.getElementById('baseSalary').value, otRate: document.getElementById('otRate').value, 
-              pkrRate: document.getElementById('pkrRate').value, actualSalary: document.getElementById('actualSalaryInput').value,
-              country: localStorage.getItem('user_selected_country') || 'PK'
-          }, 
-          overtime,
-          remarks
-      };
-
-      localStorage.setItem(`ot_data_${year}_${month}`, JSON.stringify(data));
-      
-      if (user) {
-          localStorage.setItem('last_user_id', user.uid);
-          try {
-              await set(ref(db, `users/${user.uid}/${year}/${month}`), data);
-              showToast("Cloud Synced ✅");
-          } catch(e) {
-              showToast("Saved Locally (Offline) 💾");
-          }
-      }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  window.loadUserData = () => {
-      const year = document.getElementById('yearSelect').value, month = document.getElementById('monthSelect').value;
-      window.initCalendar();
-      
-      const localData = localStorage.getItem(`ot_data_${year}_${month}`);
-      if(localData) {
-          applyData(JSON.parse(localData));
-          window.scrollToCurrentDay();
-      }
-
-      if (auth.currentUser) {
-          onValue(ref(db, `users/${auth.currentUser.uid}/${year}/${month}`), (snapshot) => {
-              const val = snapshot.val();
-              if (val) { 
-                  applyData(val); 
-                  localStorage.setItem(`ot_data_${year}_${month}`, JSON.stringify(val)); 
-              }
-          }, { onlyOnce: true });
-      }
-  };
-
-  window.googleLogin = async () => {
-      const country = document.getElementById('countrySelect').value;
-      if(!country) return;
-      
-      const liveRate = await window.fetchLiveExchangeRate(country);
-      localStorage.setItem('temp_fetched_rate', liveRate);
-      
-      signInWithPopup(auth, new GoogleAuthProvider());
-  };
-  
-  window.logout = () => { localStorage.clear(); signOut(auth).then(() => location.reload()); };
-
-  function applyData(val) {
-      let savedCountry = val.settings?.country || localStorage.getItem('user_selected_country') || 'PK';
-      localStorage.setItem('user_selected_country', savedCountry);
-      
-      let curText = savedCountry === 'IN' ? 'INR' : 'PKR';
-      let defRate = savedCountry === 'IN' ? 22.1 : 74.2;
-      
-      let tempRate = localStorage.getItem('temp_fetched_rate');
-      let finalRate = val.settings?.pkrRate || tempRate || defRate;
-      if(tempRate) localStorage.removeItem('temp_fetched_rate');
-
-      document.getElementById('currencyLabel').innerText = curText;
-      document.getElementById('settingsRateLabel').innerText = curText + " Rate";
-
-      if(val.settings) {
-          document.getElementById('baseSalary').value = val.settings.baseSalary || 2835;
-          document.getElementById('otRate').value = val.settings.otRate || 17.72;
-          document.getElementById('pkrRate').value = finalRate;
-          document.getElementById('actualSalaryInput').value = val.settings.actualSalary || "";
-      } else {
-          document.getElementById('pkrRate').value = finalRate;
-      }
-      
-      if(val.overtime) Object.keys(val.overtime).forEach(k => { if(document.querySelector(`[data-id="${k}"]`)) document.querySelector(`[data-id="${k}"]`).value = val.overtime[k]; });
-      
-      window.currentRemarks = val.remarks || {};
-      Object.keys(window.currentRemarks).forEach(dayId => {
-          if(window.currentRemarks[dayId]) {
-              const dot = document.querySelector(`.dot-btn[data-day="${dayId}"]`);
-              if(dot) dot.classList.add('dot-green');
-          }
-      });
-
-      window.calculateAll();
-  }
-</script>
-
-<script>
-    let barChart, pieChart, lineChart;
-    let trendMonth = new Date().getMonth() + 1;
-    let trendYear = new Date().getFullYear();
-    let currentTab = 'dashboard';
-    let touchstartX = 0;
-    let touchendX = 0;
-    window.currentRemarks = {};
-
-    document.getElementById('mainApp').addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; });
-    document.getElementById('mainApp').addEventListener('touchend', e => { 
-        touchendX = e.changedTouches[0].screenX; 
-        handleSwipe(); 
-    });
-
-    function handleSwipe() {
-        if (touchendX < touchstartX - 70) switchTab('analytics');
-        if (touchendX > touchstartX + 70) switchTab('dashboard');
-    }
-
-    function switchTab(tabName) {
-        if(currentTab === tabName) return;
-        currentTab = tabName;
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
-        document.getElementById('tab-' + tabName).classList.add('active');
-        document.getElementById(tabName + 'View').classList.add('active');
-        if(tabName === 'analytics') updateCharts(); else window.scrollToCurrentDay();
-    }
-
-    window.scrollToCurrentDay = function() {
-        setTimeout(() => {
-            const todayRow = document.querySelector('.current-day-highlight');
-            if (todayRow) todayRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 300);
-    };
-
-    window.initCalendar = function() {
-        const month = parseInt(document.getElementById('monthSelect').value), year = parseInt(document.getElementById('yearSelect').value);
-        const days = new Date(year, month, 0).getDate(), today = new Date();
-        let html = '<div class="row" style="background:#f1f5f9; font-weight:800; font-size:10px;"><div>DATE</div><div>DAY</div><div>HRS</div><div>SAR</div><div>REM</div></div>';
-        for (let d = 1; d <= days; d++) {
-            const dateObj = new Date(year, month - 1, d), dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
-            const isToday = (d === today.getDate() && month === (today.getMonth()+1) && year === today.getFullYear()) ? 'current-day-highlight' : '';
-            html += `<div class="row ${isToday}">
-                        <div style="font-weight:700; color:#1e3a8a">${d}/${month}</div>
-                        <div style="color:${(dayName==='Fri'?'#ef4444':'#64748b')}; font-weight:700;">${dayName}</div>
-                        <div><input type="text" inputmode="decimal" class="ot-input" data-id="day-${d}" oninput="calculateAll(); autoLocalSave();"></div>
-                        <div id="amt-${d}" style="font-weight:800; color:#16a34a">0.00</div>
-                        <div><span class="dot-btn" data-day="day-${d}" onclick="window.openDetails('${d}')"></span></div>
-                    </div>`;
-        }
-        document.getElementById('calendarRows').innerHTML = html;
-    };
-
-    window.openDetails = function(day) {
-        const dayId = `day-${day}`;
-        document.getElementById('currentDetailDay').value = dayId;
-        const existingText = window.currentRemarks[dayId] || "";
-        document.getElementById('detailInput').value = existingText;
-        document.getElementById('detailSaveBtn').innerText = existingText ? "UPDATE" : "SAVE";
-        document.getElementById('detailsModal').style.display = 'block';
-    };
-
-    window.closeDetails = function() {
-        document.getElementById('detailsModal').style.display = 'none';
-    };
-
-    window.saveDetail = function() {
-        const dayId = document.getElementById('currentDetailDay').value;
-        const text = document.getElementById('detailInput').value.trim();
-        const dot = document.querySelector(`.dot-btn[data-day="${dayId}"]`);
-        
-        if(text) {
-            window.currentRemarks[dayId] = text;
-            dot.classList.add('dot-green');
-        } else {
-            delete window.currentRemarks[dayId];
-            dot.classList.remove('dot-green');
-        }
-        window.autoLocalSave();
-        window.closeDetails();
-    };
-
-    window.calculateAll = function() {
-        const salary = parseFloat(document.getElementById('baseSalary').value) || 0, rate = parseFloat(document.getElementById('otRate').value) || 0;
-        const pkr = parseFloat(document.getElementById('pkrRate').value) || 0, actualFixed = parseFloat(document.getElementById('actualSalaryInput').value) || 0;
-        let tHrs = 0;
-        document.querySelectorAll('.ot-input').forEach((input, i) => {
-            const h = parseFloat(input.value) || 0; tHrs += h;
-            if(document.getElementById(`amt-${i+1}`)) document.getElementById(`amt-${i+1}`).innerText = (h * rate).toFixed(2);
-        });
-        const otSAR = tHrs * rate;
-        document.getElementById('totalHrs').innerText = tHrs;
-        document.getElementById('totalOT').innerText = otSAR.toFixed(2);
-        document.getElementById('grandSAR').innerText = (salary + otSAR).toFixed(2) + " SAR";
-        document.getElementById('grandPKR').innerText = ((salary + otSAR) * pkr).toLocaleString(undefined, {minimumFractionDigits: 2});
-        document.getElementById('displayActual').innerText = actualFixed.toFixed(2) + " SAR";
-    };
-
-    window.changeTrendMonth = function(dir) {
-        trendMonth += dir;
-        if(trendMonth > 12) { trendMonth = 1; trendYear++; }
-        if(trendMonth < 1) { trendMonth = 12; trendYear--; }
-        updateCharts();
-    };
-
-    window.updateCharts = function() {
-        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        document.getElementById('trendMonthLabel').innerText = `${months[trendMonth-1]} ${trendYear}`;
-        const trendDataRaw = JSON.parse(localStorage.getItem(`ot_data_${trendYear}_${trendMonth}`)) || {};
-        const daysInMonth = new Date(trendYear, trendMonth, 0).getDate();
-        const dailyLabels = Array.from({length: daysInMonth}, (_, i) => i + 1);
-        const dailyValues = dailyLabels.map(d => parseFloat(trendDataRaw.overtime?.[`day-${d}`]) || 0);
-
-        if(lineChart) lineChart.destroy();
-        lineChart = new Chart(document.getElementById('dailyTrendChart'), {
-            type: 'line',
-            data: { labels: dailyLabels, datasets: [{ data: dailyValues, borderColor: '#3b82f6', tension: 0.3, fill: true, backgroundColor: 'rgba(59, 130, 246, 0.1)' }] },
-            options: { animation: { duration: 1000 }, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-        });
-
-        const selectedYear = document.getElementById('yearSelectAnalytics').value;
-        const otMonthData = months.map((_, i) => {
-            const d = JSON.parse(localStorage.getItem(`ot_data_${selectedYear}_${i+1}`)) || {};
-            let t = 0; if(d.overtime) Object.values(d.overtime).forEach(v => t += parseFloat(v) || 0);
-            return t;
-        });
-        
-        if(barChart) barChart.destroy();
-        barChart = new Chart(document.getElementById('otBarChart'), {
-            type: 'bar',
-            data: { labels: months, datasets: [{ label: 'Monthly OT Hrs', data: otMonthData, backgroundColor: '#3b82f6', borderRadius: 6 }] },
-            options: { animation: { duration: 1000 } }
-        });
-
-        const salaryMonthData = months.map((_, i) => {
-            const d = JSON.parse(localStorage.getItem(`ot_data_${selectedYear}_${i+1}`)) || {};
-            return parseFloat(d.settings?.actualSalary) || 0;
-        });
-        const totalYearlySalary = salaryMonthData.reduce((a, b) => a + b, 0) || 1;
-
-        if(pieChart) pieChart.destroy();
-        pieChart = new Chart(document.getElementById('incomePieChart'), {
-            type: 'doughnut',
-            data: { labels: months, datasets: [{ data: salaryMonthData, backgroundColor: ['#1e3a8a','#3b82f6','#60a5fa','#93c5fd','#bfdbfe','#2563eb','#1d4ed8','#1e40af','#1e3a8a','#3b82f6','#60a5fa','#93c5fd'] }] },
-            options: { 
-                animation: { duration: 1500, animateRotate: true },
-                plugins: { tooltip: { callbacks: { label: (c) => `${c.label}: ${c.raw} SAR (${((c.raw/totalYearlySalary)*100).toFixed(1)}%)` } } } 
-            }
-        });
-    };
-
-    window.autoLocalSave = function() {
-        const year = document.getElementById('yearSelect').value, month = document.getElementById('monthSelect').value, overtime = {};
-        document.querySelectorAll('.ot-input').forEach(input => { if(input.value) overtime[input.dataset.id] = input.value; });
-        localStorage.setItem(`ot_data_${year}_${month}`, JSON.stringify({ 
-            settings: { 
-                baseSalary: document.getElementById('baseSalary').value, otRate: document.getElementById('otRate').value, 
-                pkrRate: document.getElementById('pkrRate').value, actualSalary: document.getElementById('actualSalaryInput').value,
-                country: localStorage.getItem('user_selected_country') || 'PK'
-            }, overtime, remarks: window.currentRemarks
-        }));
-    };
-
-    window.openSettings = () => { 
-        let savedCountry = localStorage.getItem('user_selected_country') || 'PK';
-        let curText = savedCountry === 'IN' ? 'INR' : 'PKR';
-        document.getElementById('settingsRateLabel').innerText = curText + " Rate";
-        document.getElementById('settingsModal').style.display = 'block'; 
-    };
-    window.closeSettings = () => { document.getElementById('settingsModal').style.display = 'none'; };
-    window.saveAndCloseSettings = () => { window.calculateAll(); window.autoLocalSave(); window.saveUserData(); document.getElementById('actualSalaryInput').value = ""; window.closeSettings(); };
-
-    function showToast(msg) { const t = document.getElementById("toast"); t.innerText = msg; t.className = "show"; setTimeout(() => { t.className = ""; }, 2500); }
-
-    window.onload = () => {
-        const m = document.getElementById('monthSelect'), y = document.getElementById('yearSelect'), ya = document.getElementById('yearSelectAnalytics'), now = new Date();
-        const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-        months.forEach((name, i) => { let opt = new Option(name, i + 1); if(i === now.getMonth()) opt.selected = true; m.add(opt); });
-        for(let i=0; i<5; i++) { const yr = now.getFullYear()-i; y.add(new Option(yr, yr)); ya.add(new Option(yr, yr)); }
-    };
-</script>
 </body>
 </html>
