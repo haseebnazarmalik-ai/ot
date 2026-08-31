@@ -3,90 +3,533 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>OT Tracker Pro - App Moved</title>
+    <title>Overtime Calculator - Admin Panel</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0E1620">
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --primary: #1e3a8a; --gradient: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Segoe UI', sans-serif;
-            background: var(--gradient);
-            color: #334155;
-            padding: 20px;
-        }
-        .card {
-            background: rgba(255,255,255,0.97);
-            border-radius: 28px;
-            padding: 40px 28px;
-            width: 100%;
-            max-width: 380px;
-            text-align: center;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
-        }
-        .icon {
-            width: 70px;
-            height: 70px;
-            border-radius: 20px;
-            background: var(--gradient);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            margin: 0 auto 20px auto;
-            color: white;
-        }
-        h1 {
-            font-size: 20px;
-            color: var(--primary);
-            margin: 0 0 12px 0;
-        }
-        p {
-            font-size: 14px;
-            line-height: 1.6;
-            color: #64748b;
-            margin: 0 0 24px 0;
-        }
-        .note {
-            font-size: 12px;
-            background: #eff6ff;
-            border: 1px solid #dbeafe;
-            border-radius: 14px;
-            padding: 12px 14px;
-            margin-bottom: 24px;
-            color: #1e40af;
-            font-weight: 600;
-        }
-        a.btn {
-            display: block;
-            text-decoration: none;
-            background: var(--gradient);
-            color: white;
-            font-weight: 800;
-            padding: 16px;
-            border-radius: 16px;
-            font-size: 15px;
-            box-shadow: 0 10px 25px rgba(30,58,138,0.3);
-        }
-        .url {
-            margin-top: 16px;
-            font-size: 11px;
-            color: #94a3b8;
-            word-break: break-all;
-        }
+        :root{ --blue-deep:#0E1620; --blue-card:#161F2B; --blue-card-2:#1B2632; --grid-line:rgba(243,239,231,0.09); --linework:#E4C766; --linework-soft:#C9A227; --accent:#C9A227; --accent-soft:#E4C766; --ink:#F3EFE7; --text-muted:#8B96A3; --radius:14px; --green:#3ECF8E; --red:#E39A9A; }
+        @media (prefers-color-scheme: light){ :root{ --blue-deep:#EEEAE1; --blue-card:#FFFFFF; --blue-card-2:#E7E2D6; --grid-line:rgba(20,20,20,0.10); --linework:#A6790E; --linework-soft:#8F6B0C; --accent:#C9A227; --accent-soft:#B8901F; --ink:#16181C; --text-muted:#6B7280; } header.dtb-site-header{ background:rgba(255,255,255,0.92) !important; } body{ background:radial-gradient(ellipse 900px 500px at 50% -10%, rgba(201,162,39,0.07), transparent 60%), var(--blue-deep) !important; } }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: radial-gradient(ellipse 900px 500px at 50% -10%, rgba(201,162,39,0.08), transparent 60%), var(--blue-deep); color: var(--ink); overflow-x: hidden; }
+        a, button { outline: none; }
+        a:focus-visible, button:focus-visible { outline: 1.5px solid var(--linework); outline-offset: 2px; }
+        .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px 60px; }
+
+        header.dtb-site-header { position: sticky; top: 0; z-index: 500; background: rgba(14,22,32,0.92); backdrop-filter: blur(10px); border-bottom: 1px solid var(--grid-line); }
+        .dtb-navbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; max-width: 1120px; margin: 0 auto; gap: 12px; }
+        .dtb-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: 'Fraunces', serif; font-weight: 700; font-size: 18px; color: var(--ink); }
+        .dtb-logo img { width: 30px; height: 30px; object-fit: contain; border-radius: 6px; }
+        .admin-badge { background: var(--blue-card-2); border: 1px solid var(--grid-line); color: var(--linework); padding: 8px 14px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.05em; }
+        .logout-link { background: none; border: 1px solid var(--grid-line); color: var(--text-muted); padding: 9px 16px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 12.5px; cursor: pointer; }
+        .logout-link:hover { color: var(--red); border-color: var(--red); }
+
+        .eyebrow{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--linework); margin:26px 0 14px;} .eyebrow::before{content:"◇ ";}
+        h1{ font-family:'Fraunces',serif; font-weight:600; font-size:clamp(24px,3.8vw,32px); line-height:1.1; margin-bottom:10px; letter-spacing:-0.01em;}
+        .intro{ color:var(--text-muted); font-size:14px; line-height:1.6; margin-bottom:24px; max-width:640px;}
+
+        #splashScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(ellipse 900px 500px at 50% -10%, rgba(201,162,39,0.1), transparent 60%), var(--blue-deep); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20000; transition: opacity 0.4s ease; }
+        .splash-logo { width: 70px; height: 70px; background: var(--blue-card); border: 1px solid var(--grid-line); border-radius: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); margin-bottom: 18px; }
+
+        #loginCard, #deniedCard { background: var(--blue-card); border: 1px solid var(--linework-soft); border-radius: var(--radius); padding: 32px; text-align: center; max-width: 400px; margin: 60px auto; }
+        #deniedCard { border-color: var(--red); }
+        #loginCard h3, #deniedCard h3 { margin: 0 0 8px; font-family: 'Fraunces', serif; color: var(--linework); font-size: 19px; }
+        #deniedCard h3 { color: var(--red); }
+        #loginCard p, #deniedCard p { margin: 0 0 20px; color: var(--text-muted); font-size: 13.5px; }
+        .google-btn { padding: 13px 22px; border-radius: 12px; border: 1.5px solid #d0d5dd; background: #fff; color: #444; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14.5px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin: 0 auto; }
+        .google-btn:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.14); }
+
+        #searchScreen { display: none; }
+        .search-card { background: var(--blue-card); border: 1px solid var(--grid-line); border-radius: var(--radius); padding: 24px; }
+        .search-card input { width: 100%; padding: 13px 16px; border-radius: 12px; border: 1px solid var(--grid-line); background: var(--blue-deep); color: var(--ink); font-family: 'JetBrains Mono', monospace; font-size: 15px; }
+        .search-card input:focus { outline: none; border-color: var(--linework); }
+        .user-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 12px; border-bottom: 1px solid var(--grid-line); cursor: pointer; border-radius: 8px; }
+        .user-row:hover { background: var(--blue-card-2); }
+        .user-row:last-child { border-bottom: none; }
+        .user-row .u-name { font-weight: 700; font-size: 14px; }
+        .user-row .u-email { color: var(--text-muted); font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+        .user-row .u-last { color: var(--linework); font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+        .empty-note { color: var(--text-muted); font-size: 13px; text-align: center; padding: 24px; font-family: 'JetBrains Mono', monospace; }
+
+        #viewerScreen { display: none; }
+        .viewer-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+        .viewer-user-badge { background: var(--blue-card); border: 1px solid var(--grid-line); border-radius: 12px; padding: 12px 18px; }
+        .viewer-user-badge .u-name { font-family: 'Fraunces', serif; font-weight: 600; font-size: 16px; color: var(--linework); }
+        .viewer-user-badge .u-email { color: var(--text-muted); font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+        .back-btn { background: var(--blue-card-2); border: 1px solid var(--grid-line); color: var(--ink); padding: 10px 18px; border-radius: 8px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px; cursor: pointer; }
+        .back-btn:hover { border-color: var(--linework); color: var(--linework); }
+
+        .tabs-container { display: flex; background: var(--blue-card); border-bottom: 1px solid var(--grid-line); border-radius: var(--radius) var(--radius) 0 0; overflow: hidden; margin-bottom: 20px; }
+        .tab { flex: 1; padding: 15px; text-align: center; font-weight: 700; font-size: 13px; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; font-family: 'Inter', sans-serif; letter-spacing: 0.03em; }
+        .tab.active { color: var(--linework); border-bottom-color: var(--accent); background: var(--blue-card-2); }
+        .view-content { display: none; }
+        .view-content.active { display: block; }
+
+        .selector-container { display: flex; gap: 10px; margin: 0 0 15px; }
+        select { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--grid-line); font-weight: 600; background: var(--blue-card); color: var(--ink); outline: none; font-size: 15px; font-family: 'JetBrains Mono', monospace; }
+
+        .row { display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr 1fr; padding: 13px 5px; border-bottom: 1px solid var(--grid-line); align-items: center; text-align: center; font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+        .row .ro-val { font-weight: 700; color: var(--ink); }
+        .current-day-highlight { background-color: rgba(62,207,142,0.10) !important; border-left: 3px solid var(--green); }
+        .dot-btn { width: 11px; height: 11px; border-radius: 50%; display: inline-block; border: 2px solid var(--grid-line); background: transparent; margin: auto; }
+        .dot-green { background: var(--green); border-color: var(--green); }
+
+        .top-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .mini-card { background: var(--blue-card); border: 1px solid var(--grid-line); padding: 15px; border-radius: var(--radius); text-align: center; }
+        .mini-card div { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+        .mini-card span { font-family: 'Fraunces', serif; font-weight: 700; font-size: 22px; color: var(--linework); }
+
+        .final-summary { margin-top: 20px; background: var(--blue-card); border-radius: 24px; padding: 25px; text-align: center; border: 1px solid var(--grid-line); }
+        .actual-salary-row { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--grid-line); color: var(--ink); font-weight: 700; font-size: 16px; font-family: 'JetBrains Mono', monospace; }
+
+        .chart-card { background: var(--blue-card); border: 1px solid var(--grid-line); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+        .chart-card h4 { font-family: 'Fraunces', serif; color: var(--linework); font-weight: 600; margin: 0 0 15px; }
+        .chart-controls { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px; }
+        .nav-btn { background: var(--blue-card-2); border: 1px solid var(--grid-line); border-radius: 50%; width: 34px; height: 34px; cursor: pointer; font-weight: 700; color: var(--linework); }
+        .annual-summary-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--grid-line); }
+        .annual-summary-row div { text-align: center; }
+        .annual-summary-row span { display: block; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+        .annual-summary-row strong { font-family: 'Fraunces', serif; font-size: 17px; color: var(--linework); font-weight: 700; }
+
+        .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); }
+        .modal-content { background: var(--blue-card); border: 1px solid var(--grid-line); margin: 15% auto; padding: 26px; border-radius: 22px; width: 85%; max-width: 340px; }
+        .modal-content h3 { font-family: 'Fraunces', serif; color: var(--linework); margin-top: 0; text-align: center; }
+        .modal-content p { color: var(--ink); font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+        .btn-cancel { width: 100%; padding: 13px; background: var(--blue-card-2); color: var(--text-muted); border: 1px solid var(--grid-line); border-radius: 10px; font-weight: 600; cursor: pointer; margin-top: 10px; font-family: 'Inter', sans-serif; }
+
+        footer.dtb-site-footer { text-align: center; margin-top: 48px; color: var(--text-muted); font-size: 11px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.06em; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <div class="icon">⏳</div>
-        <h1>OT Tracker Pro Has Moved</h1>
-        <p>This app is no longer available here. It has permanently moved to a new address, and your data is safe.</p>
-        <div class="note">Sign in with the same Google account you used before — all your saved data will be there.</div>
-        <a class="btn" href="https://docutoolbox.com/overtime-calculator/">Go to the New App</a>
-        <div class="url">https://docutoolbox.com/overtime-calculator/</div>
+
+<header class="dtb-site-header">
+    <div class="dtb-navbar">
+        <a href="/" class="dtb-logo"><img src="/logo.png" alt="Docutoolbox logo">Docutoolbox</a>
+        <div style="display:flex; align-items:center; gap:12px;">
+            <span class="admin-badge" id="adminBadge" style="display:none;">ADMIN</span>
+            <button class="logout-link" id="logoutBtn" style="display:none;" onclick="window.adminLogout()">Logout</button>
+        </div>
     </div>
+</header>
+
+<div id="splashScreen">
+    <div class="splash-logo"><span style="font-size:32px;">🔐</span></div>
+    <div style="color:var(--text-muted); font-size:12px; font-family:'JetBrains Mono',monospace;">Checking access...</div>
+</div>
+
+<div class="wrap">
+    <div class="eyebrow">Docutoolbox · Internal</div>
+    <h1>Overtime Calculator — Admin Panel</h1>
+    <p class="intro">Search for a user by email and view their full overtime and salary data, exactly as it appears in their own dashboard. Read-only.</p>
+
+    <div id="loginCard">
+        <h3>Admin Sign-In Required</h3>
+        <p>This page is restricted. Sign in with the authorized admin Google account.</p>
+        <button class="google-btn" onclick="window.adminLogin()">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Login with Google
+        </button>
+    </div>
+
+    <div id="deniedCard" style="display:none;">
+        <h3>Not Authorized</h3>
+        <p>This Google account isn't permitted to view this page.</p>
+        <button class="google-btn" onclick="window.adminLogin()">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Try a different account
+        </button>
+    </div>
+
+    <div id="searchScreen">
+        <div class="search-card">
+            <input type="text" id="userSearchInput" placeholder="Search by email or name..." autocomplete="off">
+            <div id="userResultsList" style="margin-top:14px;"></div>
+        </div>
+    </div>
+
+    <div id="viewerScreen">
+        <div class="viewer-header">
+            <div class="viewer-user-badge">
+                <div class="u-name" id="viewerName">-</div>
+                <div class="u-email" id="viewerEmail">-</div>
+            </div>
+            <button class="back-btn" onclick="window.backToSearch()">← Back to Search</button>
+        </div>
+
+        <div class="tabs-container">
+            <div id="tab-dashboard" class="tab active" onclick="switchAdminTab('dashboard')">DASHBOARD</div>
+            <div id="tab-analytics" class="tab" onclick="switchAdminTab('analytics')">ANALYTICS</div>
+        </div>
+
+        <div id="dashboardView" class="view-content active">
+            <div class="selector-container">
+                <select id="monthSelect" onchange="window.loadAdminMonth()"></select>
+                <select id="yearSelect" onchange="window.loadAdminMonth()"></select>
+            </div>
+            <div class="top-summary">
+                <div class="mini-card"><div>Total Hours</div><span id="totalHrs">0</span></div>
+                <div class="mini-card"><div>OT <span class="job-currency-label">SAR</span></div><span id="totalOT">0.00</span></div>
+            </div>
+            <div style="background: var(--blue-card); border: 1px solid var(--grid-line); border-radius: var(--radius); overflow: hidden;" id="calendarRows"></div>
+
+            <div class="final-summary">
+                <div style="font-weight: 700; color: var(--linework); font-size: 10.5px; font-family:'JetBrains Mono',monospace; letter-spacing:0.08em; text-transform:uppercase;">Monthly Grand Total</div>
+                <div style="font-size: 20px; font-weight: 700; margin-top:8px; font-family:'JetBrains Mono',monospace;" id="grandSAR">0.00 SAR</div>
+                <div id="conversionRow" style="font-size: 32px; font-weight: 700; color: var(--linework); font-family:'Fraunces',serif;"><small style="font-size:15px; font-family:'JetBrains Mono',monospace; color:var(--text-muted);" id="currencyLabel">PKR</small> <span id="grandPKR">0.00</span></div>
+                <div class="actual-salary-row">ACTUAL SALARY: <span id="displayActual">0.00</span></div>
+                <div class="actual-salary-row" style="border-top:none; margin-top:4px; padding-top:4px; color:var(--text-muted); font-size:12px;">Basic Salary: <span id="displayBasic">0.00</span> · OT Rate: <span id="displayOtRate">0.00</span> · Exchange Rate: <span id="displayRate">-</span></div>
+            </div>
+        </div>
+
+        <div id="analyticsView" class="view-content">
+            <div class="chart-card">
+                <h4 style="text-align:center;">Daily OT Trend (Zigzag)</h4>
+                <div class="chart-controls">
+                    <button class="nav-btn" onclick="changeAdminTrendMonth(-1)">❮</button>
+                    <span id="trendMonthLabel" style="font-weight:700; min-width:100px; text-align:center; font-family:'JetBrains Mono',monospace;">-</span>
+                    <button class="nav-btn" onclick="changeAdminTrendMonth(1)">❯</button>
+                </div>
+                <canvas id="dailyTrendChart"></canvas>
+            </div>
+            <div class="selector-container" style="margin-bottom: 20px;">
+                <select id="yearSelectAnalytics" onchange="updateAdminCharts()"></select>
+            </div>
+            <div class="chart-card">
+                <h4>Month-wise OT Trend</h4>
+                <canvas id="otBarChart"></canvas>
+            </div>
+            <div class="chart-card" style="text-align: center;">
+                <h4>Income Breakdown (%)</h4>
+                <div id="pieChartInfo" style="font-size: 12px; font-weight: 700; margin-bottom: 10px; color: var(--linework); font-family:'JetBrains Mono',monospace;">Based on Actual Salary</div>
+                <canvas id="incomePieChart"></canvas>
+                <div class="annual-summary-row">
+                    <div><span>Annual Basic Salary</span><strong id="annualBasicOut">0.00 SAR</strong></div>
+                    <div><span>Annual Actual Received</span><strong id="annualActualOut">0.00 SAR</strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="remarkModal" class="modal">
+    <div class="modal-content">
+        <h3>Remark</h3>
+        <p id="remarkText">-</p>
+        <button class="btn-cancel" onclick="document.getElementById('remarkModal').style.display='none'">Close</button>
+    </div>
+</div>
+
+<footer class="dtb-site-footer">Docutoolbox Internal Tool · Not for public use</footer>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+  import { getAuth, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+
+  // Same Firebase project as the user-facing Overtime Calculator (read-only usage here).
+  const firebaseConfig = {
+    apiKey: "AIzaSyAywmVNaLkyudJelZ-Gdx6gL1hydzxe2cg",
+    authDomain: "haseeb-984fc.firebaseapp.com",
+    projectId: "haseeb-984fc",
+    databaseURL: "https://haseeb-984fc-default-rtdb.firebaseio.com",
+    appId: "1:868884894390:web:09f2edf8a4ccebe909cc17"
+  };
+
+  // IMPORTANT: this is only a client-side convenience gate. The REAL security must come
+  // from Firebase Realtime Database rules restricting read access on /directory and
+  // /users to this exact admin UID. See the rules provided alongside this file.
+  const ADMIN_EMAIL = "haseebnazar.malik@gmail.com";
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const auth = getAuth(app);
+
+  function hideSplash(){
+      const ss = document.getElementById('splashScreen');
+      ss.style.opacity = '0';
+      setTimeout(() => ss.style.display = 'none', 400);
+  }
+
+  window.adminLogin = () => { signInWithPopup(auth, new GoogleAuthProvider()); };
+  window.adminLogout = () => { signOut(auth).then(() => location.reload()); };
+
+  onAuthStateChanged(auth, (user) => {
+      hideSplash();
+      document.getElementById('loginCard').style.display = 'none';
+      document.getElementById('deniedCard').style.display = 'none';
+      document.getElementById('searchScreen').style.display = 'none';
+      document.getElementById('viewerScreen').style.display = 'none';
+      document.getElementById('adminBadge').style.display = 'none';
+      document.getElementById('logoutBtn').style.display = 'none';
+
+      if(!user){
+          document.getElementById('loginCard').style.display = 'block';
+          return;
+      }
+      if(user.email !== ADMIN_EMAIL){
+          document.getElementById('deniedCard').style.display = 'block';
+          signOut(auth);
+          return;
+      }
+
+      document.getElementById('adminBadge').style.display = 'inline-block';
+      document.getElementById('logoutBtn').style.display = 'inline-block';
+      document.getElementById('searchScreen').style.display = 'block';
+      window.loadUserDirectory();
+  });
+
+  window.loadUserDirectory = function(){
+      onValue(ref(db, 'directory'), (snapshot) => {
+          window.__directory = snapshot.val() || {};
+          window.renderUserResults(document.getElementById('userSearchInput').value);
+      }, { onlyOnce: true });
+  };
+
+  window.renderUserResults = function(filterText){
+      const q = (filterText || '').trim().toLowerCase();
+      const dir = window.__directory || {};
+      const entries = Object.entries(dir).map(([uid, info]) => ({ uid, ...info }));
+      const matches = q
+          ? entries.filter(e => (e.email || '').toLowerCase().includes(q) || (e.displayName || '').toLowerCase().includes(q))
+          : entries;
+      matches.sort((a, b) => (b.lastLogin || 0) - (a.lastLogin || 0));
+
+      const list = document.getElementById('userResultsList');
+      if(matches.length === 0){
+          list.innerHTML = '<div class="empty-note">No users found</div>';
+          return;
+      }
+      list.innerHTML = matches.map(u => `
+          <div class="user-row" data-uid="${u.uid}">
+              <div>
+                  <div class="u-name">${u.displayName || '(no name)'}</div>
+                  <div class="u-email">${u.email || ''}</div>
+              </div>
+              <div class="u-last">${u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : ''}</div>
+          </div>
+      `).join('');
+      list.querySelectorAll('.user-row').forEach(row => {
+          row.addEventListener('click', () => window.openUser(row.dataset.uid, dir[row.dataset.uid]));
+      });
+  };
+
+  document.getElementById('userSearchInput').addEventListener('input', (e) => window.renderUserResults(e.target.value));
+
+  window.openUser = function(uid, info){
+      window.__currentUid = uid;
+      document.getElementById('viewerName').textContent = (info && info.displayName) || '(no name)';
+      document.getElementById('viewerEmail').textContent = (info && info.email) || '';
+      document.getElementById('searchScreen').style.display = 'none';
+      document.getElementById('viewerScreen').style.display = 'block';
+
+      onValue(ref(db, `users/${uid}`), (snapshot) => {
+          window.__userData = snapshot.val() || {};
+          window.initAdminSelectors();
+          window.loadAdminMonth();
+      }, { onlyOnce: true });
+  };
+
+  window.backToSearch = function(){
+      document.getElementById('viewerScreen').style.display = 'none';
+      document.getElementById('searchScreen').style.display = 'block';
+      window.__currentUid = null;
+      window.__userData = null;
+  };
+</script>
+
+<script>
+    // ===== Read-only dashboard/analytics rendering, reusing the same visual layout and =====
+    // ===== calculation logic as the user-facing app, but sourced from an in-memory     =====
+    // ===== snapshot of the SELECTED user's data instead of the admin's own account.    =====
+    let barChart, pieChart, lineChart;
+    let adminTrendMonth = new Date().getMonth() + 1;
+    let adminTrendYear = new Date().getFullYear();
+    let currentAdminTab = 'dashboard';
+    const el = (id) => document.getElementById(id);
+
+    if (window.Chart) {
+        Chart.defaults.color = '#8B96A3';
+        Chart.defaults.borderColor = 'rgba(243,239,231,0.09)';
+        Chart.defaults.font.family = "'JetBrains Mono', monospace";
+    }
+
+    function switchAdminTab(tabName){
+        if(currentAdminTab === tabName) return;
+        currentAdminTab = tabName;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
+        el('tab-' + tabName).classList.add('active');
+        el(tabName + 'View').classList.add('active');
+        if(tabName === 'analytics') updateAdminCharts();
+    }
+    window.switchAdminTab = switchAdminTab;
+
+    window.initAdminSelectors = function(){
+        const m = el('monthSelect'), y = el('yearSelect'), ya = el('yearSelectAnalytics'), now = new Date();
+        m.innerHTML = ''; y.innerHTML = ''; ya.innerHTML = '';
+        const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+        months.forEach((name, i) => { let opt = new Option(name, i + 1); if(i === now.getMonth()) opt.selected = true; m.add(opt); });
+
+        // Show every year that actually has data for this user, plus the current year.
+        const years = new Set([now.getFullYear()]);
+        Object.keys(window.__userData || {}).forEach(yr => years.add(parseInt(yr)));
+        Array.from(years).sort((a, b) => b - a).forEach(yr => { y.add(new Option(yr, yr)); ya.add(new Option(yr, yr)); });
+    };
+
+    function getMonthData(year, month){
+        const u = window.__userData || {};
+        return (u[year] && u[year][month]) ? u[year][month] : null;
+    }
+
+    // Same carry-forward look-back as the user app, but reading the in-memory snapshot.
+    function findInheritedAdminSettings(year, month){
+        let y = year, m = month;
+        for(let i = 0; i < 36; i++){
+            m -= 1;
+            if(m < 1){ m = 12; y -= 1; }
+            const d = getMonthData(y, m);
+            if(d && d.settings && d.settings.baseSalary){
+                return {
+                    baseSalary: d.settings.baseSalary,
+                    otRate: d.settings.otRate,
+                    currency: d.settings.currency || 'PKR',
+                    jobCurrency: d.settings.jobCurrency || 'SAR',
+                    rate: d.settings.rate || d.settings.pkrRate || null
+                };
+            }
+        }
+        return { baseSalary: 0, otRate: 0, currency: 'PKR', jobCurrency: 'SAR', rate: null };
+    }
+
+    window.loadAdminMonth = function(){
+        const year = parseInt(el('yearSelect').value), month = parseInt(el('monthSelect').value);
+        const days = new Date(year, month, 0).getDate(), today = new Date();
+
+        let data = getMonthData(year, month);
+        let settings;
+        if(data && data.settings && data.settings.baseSalary){
+            settings = data.settings;
+        } else {
+            settings = findInheritedAdminSettings(year, month);
+        }
+
+        const jobCurrency = settings.jobCurrency || 'SAR';
+        const homeCurrency = settings.currency || 'PKR';
+        const sameCurrency = jobCurrency === homeCurrency;
+        document.querySelectorAll('.job-currency-label').forEach(n => n.textContent = jobCurrency);
+        el('currencyLabel').textContent = homeCurrency;
+        el('conversionRow').style.display = sameCurrency ? 'none' : 'block';
+
+        const overtime = (data && data.overtime) || {};
+        const remarks = (data && data.remarks) || {};
+
+        let html = `<div class="row" style="background:var(--blue-card-2); font-weight:700; font-size:10px; letter-spacing:0.05em; color:var(--text-muted);"><div>DATE</div><div>DAY</div><div>HRS</div><div class="job-currency-label">${jobCurrency}</div><div>REM</div></div>`;
+        let totalHrs = 0;
+        const otRate = parseFloat(settings.otRate) || 0;
+
+        for(let d = 1; d <= days; d++){
+            const dateObj = new Date(year, month - 1, d), dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+            const isToday = (d === today.getDate() && month === (today.getMonth()+1) && year === today.getFullYear()) ? 'current-day-highlight' : '';
+            const hrs = parseFloat(overtime[`day-${d}`]) || 0;
+            totalHrs += hrs;
+            const amt = (hrs * otRate).toFixed(2);
+            const hasRemark = !!remarks[`day-${d}`];
+            html += `<div class="row ${isToday}">
+                        <div style="font-weight:700; color:var(--ink)">${d}/${month}</div>
+                        <div style="color:${(dayName==='Fri'?'var(--red)':'var(--text-muted)')}; font-weight:700;">${dayName}</div>
+                        <div class="ro-val">${hrs || ''}</div>
+                        <div class="ro-val" style="color:var(--linework)">${amt}</div>
+                        <div><span class="dot-btn ${hasRemark ? 'dot-green' : ''}" ${hasRemark ? `onclick="window.showRemark('${(remarks[`day-${d}`]||'').replace(/'/g,"\\'")}')"` : ''} style="${hasRemark ? 'cursor:pointer;' : ''}"></span></div>
+                    </div>`;
+        }
+        el('calendarRows').innerHTML = html;
+
+        const basic = parseFloat(settings.baseSalary) || 0;
+        const rate = parseFloat(settings.rate) || 0;
+        const actual = parseFloat((data && data.settings && data.settings.actualSalary) || 0);
+        const otTotal = totalHrs * otRate;
+
+        el('totalHrs').textContent = totalHrs;
+        el('totalOT').textContent = otTotal.toFixed(2);
+        el('grandSAR').textContent = (basic + otTotal).toFixed(2) + ' ' + jobCurrency;
+        el('grandPKR').textContent = ((basic + otTotal) * rate).toLocaleString(undefined, {minimumFractionDigits: 2});
+        el('displayActual').textContent = actual.toFixed(2) + ' ' + jobCurrency;
+        el('displayBasic').textContent = basic.toFixed(2) + ' ' + jobCurrency;
+        el('displayOtRate').textContent = otRate.toFixed(2) + ' ' + jobCurrency;
+        el('displayRate').textContent = sameCurrency ? 'n/a (same currency)' : (rate ? rate.toFixed(4) : '-');
+
+        setTimeout(() => {
+            const todayRow = document.querySelector('.current-day-highlight');
+            if (todayRow) todayRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+    };
+
+    window.showRemark = function(text){
+        el('remarkText').textContent = text;
+        el('remarkModal').style.display = 'block';
+    };
+
+    function changeAdminTrendMonth(dir){
+        adminTrendMonth += dir;
+        if(adminTrendMonth > 12){ adminTrendMonth = 1; adminTrendYear++; }
+        if(adminTrendMonth < 1){ adminTrendMonth = 12; adminTrendYear--; }
+        updateAdminCharts();
+    }
+    window.changeAdminTrendMonth = changeAdminTrendMonth;
+
+    function updateAdminCharts(){
+        const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        el('trendMonthLabel').textContent = `${months[adminTrendMonth-1]} ${adminTrendYear}`;
+
+        const trendData = getMonthData(adminTrendYear, adminTrendMonth) || {};
+        const daysInMonth = new Date(adminTrendYear, adminTrendMonth, 0).getDate();
+        const dailyLabels = Array.from({length: daysInMonth}, (_, i) => i + 1);
+        const dailyValues = dailyLabels.map(d => parseFloat((trendData.overtime || {})[`day-${d}`]) || 0);
+
+        if(lineChart) lineChart.destroy();
+        lineChart = new Chart(el('dailyTrendChart'), {
+            type: 'line',
+            data: { labels: dailyLabels, datasets: [{ data: dailyValues, borderColor: '#C9A227', tension: 0.3, fill: true, backgroundColor: 'rgba(201,162,39,0.12)', pointBackgroundColor: '#E4C766' }] },
+            options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        });
+
+        const selectedYear = parseInt(el('yearSelectAnalytics').value);
+        const jobCurrency = (findInheritedAdminSettings(selectedYear, 1).jobCurrency) || 'SAR';
+
+        const otMonthData = months.map((_, i) => {
+            const d = getMonthData(selectedYear, i + 1) || {};
+            let t = 0; if(d.overtime) Object.values(d.overtime).forEach(v => t += parseFloat(v) || 0);
+            return t;
+        });
+        if(barChart) barChart.destroy();
+        barChart = new Chart(el('otBarChart'), {
+            type: 'bar',
+            data: { labels: months, datasets: [{ label: 'Monthly OT Hrs', data: otMonthData, backgroundColor: '#C9A227', borderRadius: 6 }] }
+        });
+
+        const salaryMonthData = months.map((_, i) => {
+            const d = getMonthData(selectedYear, i + 1) || {};
+            return parseFloat(d.settings?.actualSalary) || 0;
+        });
+        const totalYearlySalary = salaryMonthData.reduce((a,b) => a+b, 0) || 1;
+        if(pieChart) pieChart.destroy();
+        pieChart = new Chart(el('incomePieChart'), {
+            type: 'doughnut',
+            data: { labels: months, datasets: [{ data: salaryMonthData, backgroundColor: ['#C9A227','#E4C766','#8B96A3','#5B7C99','#4A90A4','#6B8E9F','#D4A574','#B08D57','#7A9CC6','#94A3B8','#F0D080','#A6790E'] }] },
+            options: { plugins: { legend: { labels: { color: '#8B96A3' } }, tooltip: { callbacks: { label: (c) => `${c.label}: ${c.raw} ${jobCurrency} (${((c.raw/totalYearlySalary)*100).toFixed(1)}%)` } } } }
+        });
+
+        const basicMonthData = months.map((_, i) => {
+            const d = getMonthData(selectedYear, i + 1);
+            if(d && d.settings && d.settings.baseSalary) return parseFloat(d.settings.baseSalary) || 0;
+            return parseFloat(findInheritedAdminSettings(selectedYear, i + 1).baseSalary) || 0;
+        });
+        el('annualBasicOut').textContent = basicMonthData.reduce((a,b)=>a+b,0).toLocaleString(undefined,{minimumFractionDigits:2}) + ' ' + jobCurrency;
+        el('annualActualOut').textContent = salaryMonthData.reduce((a,b)=>a+b,0).toLocaleString(undefined,{minimumFractionDigits:2}) + ' ' + jobCurrency;
+    }
+    window.updateAdminCharts = updateAdminCharts;
+</script>
 </body>
 </html>
